@@ -1,5 +1,5 @@
 import Database_manager
-import Bitcoin_To_Ether
+from Exchange_finder import Exchange_finder
 
 def main():
     # Create MySQL Database and connect
@@ -12,7 +12,17 @@ def main():
     Database_manager.delete_all_data()
 
     # Find Exchanges
-    Bitcoin_To_Ether.find_exchanges()
-
+    btc2eth_finder = Exchange_finder("BTC", "ETH")
+    btc2eth_finder.find_exchanges()
+    eth2btc_finder = Exchange_finder("ETH", "BTC")
+    eth2btc_finder.find_exchanges()
+    btc2ltc_finder = Exchange_finder("BTC", "LTC")
+    btc2ltc_finder.find_exchanges()
+    ltc2btc_finder = Exchange_finder("LTC", "BTC")
+    ltc2btc_finder.find_exchanges()
+    eth2ltc_finder = Exchange_finder("ETH", "LTC")
+    eth2ltc_finder.find_exchanges()
+    ltc2eth_finder = Exchange_finder("LTC", "ETH")
+    ltc2eth_finder.find_exchanges()
 
 if __name__ == "__main__": main()

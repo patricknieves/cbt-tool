@@ -1,4 +1,3 @@
-from __future__ import division
 import datetime
 import Database_manager
 from Currency_data import Currency_data

@@ -14,6 +14,9 @@ def get_last_block_number(currency):
                 last_block_number = requests.get("https://blockchain.info/de/latestblock").json()["height"]
             elif currency == "ETH":
                 last_block_number = requests.get("https://etherchain.org/api/blocks/count").json()["data"][0]["count"]
+            elif currency == "LTC":
+                last_block_number = requests.get("https://chain.so/api/v2/get_info/LTC").json()["data"]["blocks"]
+                #last_block_number = requests.get("https://api.blockcypher.com/v1/ltc/main").json()["height"]
             else:
                 print ("Couldn't get last number of block. Not such a currency: " + currency)
                 return
@@ -37,6 +40,8 @@ def get_block_by_number(currency, number):
                 block["tx"].sort(key=lambda x: datetime.datetime.utcfromtimestamp(x["time"]), reverse=True)
             elif currency == "ETH":
                 block = requests.get("https://etherchain.org/api/block/" + (str(number)) + "/tx").json()["data"]
+            elif currency == "LTC":
+                block = requests.get("https://chain.so/api/v2/block/LTC/" + (str(number))).json()["data"]
             else:
                 print ("Couldn't get block. Not such a currency: " + currency)
                 return
@@ -74,6 +79,17 @@ def standardize(currency, json):
             dict_item["hash"] = transaction["hash"]
             dict_item["address"] = transaction["recipient"]
             standardized_dict.append(dict_item)
+    elif currency == "LTC":
+        for transaction in json["txs"]:
+            for output in transaction["outputs"]:
+                dict_item = {}
+                dict_item["amount"] = output["value"]
+                dict_item["time"] = datetime.datetime.utcfromtimestamp(json["time"])
+                dict_item["blocktime"] = dict_item["time"]
+                dict_item["fee"] = transaction["fee"]
+                dict_item["hash"] = transaction["txid"]
+                dict_item["address"] = output["address"]
+                standardized_dict.append(dict_item)
     else:
         print ("Couldn't standardize block for " + currency)
         return
@@ -85,7 +101,8 @@ def get_fee_BTC(tx_hash):
     Tor.change_ip()
     for attempt in range(5):
         try:
-            fee_from = requests.get("https://chain.so/api/v2/tx/BTC/" + str(tx_hash)).json()["data"]["fee"]
+            #fee_from = requests.get("https://chain.so/api/v2/tx/BTC/" + str(tx_hash)).json()["data"]["fee"]
+            fee_from = requests.get("https://api.blockcypher.com/v1/btc/main/txs/" + str(hash)).json()["fees"] / 100000000
         except:
             print ("Wait a minute")
             time.sleep(60)
@@ -93,15 +110,5 @@ def get_fee_BTC(tx_hash):
         else:
             return fee_from
     else:
-        for attempt in range(5):
-            try:
-                fee_from = requests.get("https://api.blockcypher.com/v1/btc/main/txs/" + str(hash)).json()["fees"] / 100000000
-            except:
-                print ("Wait a minute")
-                time.sleep(60)
-                Tor.change_ip()
-            else:
-                return fee_from
-        else:
-            traceback.print_exc()
-            sys.exit("Counldn't get fee for BTC: " + str(tx_hash))
+        traceback.print_exc()
+        sys.exit("Counldn't get fee for BTC: " + str(tx_hash))
