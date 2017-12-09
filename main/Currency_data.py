@@ -1,5 +1,6 @@
-from crycompare import *
 import Tor
+import time
+from crycompare import *
 
 
 class Currency_data(object):
@@ -11,11 +12,12 @@ class Currency_data(object):
         self.currency_to = currency_to
 
     def get_value(self, transaction_time):
+        transaction_time = time.mktime(transaction_time.timetuple())
         if not self.history:
             Tor.change_ip()
             self.history = self.h.histoHour(self.currency_from, self.currency_to, toTs=transaction_time, limit=2000)["Data"][::-1]
         for data_set in self.history:
-            #Delete Data which is older than 1 hour
+            # Delete Data which is older than 1 hour
             if (transaction_time - data_set["time"]) < -3600:
                 self.history.remove(data_set)
                 if not self.history:

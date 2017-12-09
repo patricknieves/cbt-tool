@@ -1,10 +1,14 @@
 from __future__ import division
-import Tor
-import time
-import requests
-import traceback
-import sys
+
 import datetime
+import sys
+import time
+import traceback
+
+import requests
+
+import Tor
+
 
 def get_last_block_number(currency):
     Tor.change_ip()
@@ -61,35 +65,38 @@ def standardize(currency, json):
     if currency == "BTC":
         for transaction in json["tx"]:
             for output in transaction["out"]:
-                dict_item = {}
-                dict_item["amount"] = output["value"]/100000000
-                dict_item["time"] = datetime.datetime.utcfromtimestamp(transaction["time"])
-                dict_item["blocktime"] = datetime.datetime.utcfromtimestamp(json["time"])
-                dict_item["fee"] = None
-                dict_item["hash"] = transaction["hash"]
-                dict_item["address"] = output["addr"]
-                standardized_dict.append(dict_item)
+                if output["value"] != 0 and "addr" in output:
+                    dict_item = {}
+                    dict_item["amount"] = output["value"]/100000000
+                    dict_item["time"] = datetime.datetime.utcfromtimestamp(transaction["time"])
+                    dict_item["blocktime"] = datetime.datetime.utcfromtimestamp(json["time"])
+                    dict_item["fee"] = None
+                    dict_item["hash"] = transaction["hash"]
+                    dict_item["address"] = output["addr"]
+                    standardized_dict.append(dict_item)
     elif currency == "ETH":
         for transaction in json:
-            dict_item = {}
-            dict_item["amount"] = transaction["amount"]/1E+18
-            dict_item["time"] = datetime.datetime.strptime(transaction["time"].replace("T"," ")[:-5], "%Y-%m-%d %H:%M:%S")
-            dict_item["blocktime"] = dict_item["time"]
-            dict_item["fee"] = transaction["gasUsed"]*(transaction["price"]/ 1E+18)
-            dict_item["hash"] = transaction["hash"]
-            dict_item["address"] = transaction["recipient"]
-            standardized_dict.append(dict_item)
+            if transaction["amount"] != 0:
+                dict_item = {}
+                dict_item["amount"] = transaction["amount"]/1E+18
+                dict_item["time"] = datetime.datetime.strptime(transaction["time"].replace("T"," ")[:-5], "%Y-%m-%d %H:%M:%S")
+                dict_item["blocktime"] = dict_item["time"]
+                dict_item["fee"] = transaction["gasUsed"]*(transaction["price"]/ 1E+18)
+                dict_item["hash"] = transaction["hash"]
+                dict_item["address"] = transaction["recipient"]
+                standardized_dict.append(dict_item)
     elif currency == "LTC":
         for transaction in json["txs"]:
             for output in transaction["outputs"]:
-                dict_item = {}
-                dict_item["amount"] = output["value"]
-                dict_item["time"] = datetime.datetime.utcfromtimestamp(json["time"])
-                dict_item["blocktime"] = dict_item["time"]
-                dict_item["fee"] = transaction["fee"]
-                dict_item["hash"] = transaction["txid"]
-                dict_item["address"] = output["address"]
-                standardized_dict.append(dict_item)
+                if output["value"] != 0:
+                    dict_item = {}
+                    dict_item["amount"] = output["value"]
+                    dict_item["time"] = datetime.datetime.utcfromtimestamp(json["time"])
+                    dict_item["blocktime"] = dict_item["time"]
+                    dict_item["fee"] = transaction["fee"]
+                    dict_item["hash"] = transaction["txid"]
+                    dict_item["address"] = output["address"]
+                    standardized_dict.append(dict_item)
     else:
         print ("Couldn't standardize block for " + currency)
         return
@@ -97,12 +104,11 @@ def standardize(currency, json):
 
 
 def get_fee_BTC(tx_hash):
-    # Get fee_from
     Tor.change_ip()
     for attempt in range(5):
         try:
             #fee_from = requests.get("https://chain.so/api/v2/tx/BTC/" + str(tx_hash)).json()["data"]["fee"]
-            fee_from = requests.get("https://api.blockcypher.com/v1/btc/main/txs/" + str(hash)).json()["fees"] / 100000000
+            fee_from = requests.get("https://api.blockcypher.com/v1/btc/main/txs/" + str(tx_hash)).json()["fees"] / 100000000
         except:
             print ("Wait a minute")
             time.sleep(60)
