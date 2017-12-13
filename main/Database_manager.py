@@ -45,19 +45,22 @@ def create_table_scraper():
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "currency_from varchar(45) DEFAULT NULL,"
                 "currency_to varchar(45) DEFAULT NULL,"
-                "amount_from float DEFAULT NULL,"
-                "amount_to float DEFAULT NULL,"
-                "fee_from float DEFAULT NULL,"
-                "fee_to float DEFAULT NULL,"
+                "amount_from DECIMAL(26, 20) DEFAULT NULL,"
+                "amount_to DECIMAL(26, 20) DEFAULT NULL,"
+                "fee_from DECIMAL(26, 20) DEFAULT NULL,"
+                "fee_to DECIMAL(26, 20) DEFAULT NULL,"
                 "fee_exchange float DEFAULT NULL,"
                 "address_from varchar(120) DEFAULT NULL,"
                 "address_to varchar(120) DEFAULT NULL,"
                 "hash_from varchar(120) DEFAULT NULL,"
                 "hash_to varchar(120) DEFAULT NULL,"
                 "time_from datetime DEFAULT NULL,"
-                "time_to datetime DEFAULT NULL,"
+                "time_block_from datetime DEFAULT NULL,"
                 "time_exchange datetime DEFAULT NULL,"
-                "block_nr int(11) DEFAULT NULL,"
+                "time_to datetime DEFAULT NULL,"
+                "time_block_to datetime DEFAULT NULL,"
+                "block_nr_from int(11) DEFAULT NULL,"
+                "block_nr_to int(11) DEFAULT NULL,"
                 "dollarvalue_from float DEFAULT NULL,"
                 "dollarvalue_to float DEFAULT NULL,"
                 "PRIMARY KEY (id))")
@@ -152,6 +155,7 @@ def insert_shapeshift_exchange(currency_from,
              dollarvalue_to
              ))
         db.commit()
+        return cur.lastrowid
     except:
         print("Problem saving Transaction")
         traceback.print_exc()
@@ -182,7 +186,8 @@ def update_shapeshift_exchange(amount_to,
                                hash_from,
                                hash_to,
                                time_from,
-                               block_nr,
+                               time_block_from,
+                               block_nr_from,
                                id
                                ):
     try:
@@ -195,7 +200,8 @@ def update_shapeshift_exchange(amount_to,
             "hash_from = %s, "
             "hash_to = %s, "
             "time_from = %s, "
-            "block_nr = %s "
+            "time_block_from = %s, "
+            "block_nr_from = %s "
             "WHERE id = %s",
             (amount_to,
              fee_from,
@@ -204,12 +210,35 @@ def update_shapeshift_exchange(amount_to,
              hash_from,
              hash_to,
              time_from,
-             block_nr,
+             time_block_from,
+             block_nr_from,
              id
              ))
         db.commit()
     except:
-        print("Problem updating found Transaction for: " + hash_from)
+        print("Problem updating found Transaction with id: " + str(id))
+        traceback.print_exc()
+        db.rollback()
+
+
+def update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, block_nr_to, id):
+    try:
+        cur.execute(
+            "UPDATE scraper SET  "
+            "time_to = %s, "
+            "time_block_to = %s, "
+            "fee_to = %s, "
+            "block_nr_to = %s "
+            "WHERE id = %s",
+            (time_to,
+             time_block_to,
+             fee_to,
+             block_nr_to,
+             id
+             ))
+        db.commit()
+    except:
+        print("Problem updating found Transaction with id: " + str(id))
         traceback.print_exc()
         db.rollback()
 

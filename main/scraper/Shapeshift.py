@@ -11,7 +11,8 @@ class Shapeshift(object):
         self.duration = 0
         self.cmc = Coinmarketcap()
 
-    def save_new_exchanges(self):
+    def get_new_exchanges(self):
+        self.standardized_new_transactions = []
         # Request last 50 Transactions from Shapeshift
         new_exchanges = Shapeshift_api.get_exchanges_shapeshift()
 
@@ -35,7 +36,7 @@ class Shapeshift(object):
                     dollarvalue_to = self.cmc.get_dollarvalue(exchange["curOut"])
                     fee_exchange = self.get_shapeshift_fees(exchange["curOut"])
                     time_exchange = datetime.datetime.utcfromtimestamp(exchange["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
-                    Database_manager.insert_shapeshift_exchange(exchange["curIn"],
+                    exchange_db_id = Database_manager.insert_shapeshift_exchange(exchange["curIn"],
                                                                 exchange["curOut"],
                                                                 exchange["amount"],
                                                                 time_exchange,
@@ -43,6 +44,14 @@ class Shapeshift(object):
                                                                 dollarvalue_from,
                                                                 dollarvalue_to
                                                                 )
+                    dict_item = {}
+                    dict_item["id"] = exchange_db_id
+                    dict_item["currency_from"] = exchange["curIn"]
+                    dict_item["currency_to"] = exchange["curOut"]
+                    dict_item["amount_from"] = exchange["amount"]
+                    dict_item["time_exchange"] = datetime.datetime.utcfromtimestamp(exchange["timestamp"])
+                    self.standardized_new_transactions.append(dict_item)
+        return self.standardized_new_transactions
 
     def get_shapeshift_fees(self, currency):
         for exchange in self.shapeshift_data:

@@ -88,9 +88,9 @@ def standardize(currency, json):
     elif currency == "LTC":
         for transaction in json["txs"]:
             for output in transaction["outputs"]:
-                if output["value"] != 0:
+                if float(output["value"]) != 0:
                     dict_item = {}
-                    dict_item["amount"] = output["value"]
+                    dict_item["amount"] = float(output["value"])
                     dict_item["time"] = datetime.datetime.utcfromtimestamp(json["time"])
                     dict_item["blocktime"] = dict_item["time"]
                     dict_item["fee"] = transaction["fee"]

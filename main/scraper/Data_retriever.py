@@ -1,4 +1,3 @@
-import datetime
 import Corresponding_tx
 from main import Currency_apis, Database_manager, Shapeshift_api
 
@@ -6,26 +5,27 @@ from main import Currency_apis, Database_manager, Shapeshift_api
 
 class Data_retriever(object):
 
-    def __init__(self, currency, last_block_number=None):
+    def __init__(self, currency, last_block_number=None, exchanges=None):
         self.currency = currency
+        self.exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency) if exchanges is None \
+            else exchanges
         self.current_block_number = Currency_apis.get_last_block_number(currency) if last_block_number is None \
             else last_block_number
         print self.current_block_number
 
     def find_exchanges(self):
-        exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency)
-
-        while exchanges:
+        while self.exchanges:
             transactions = Currency_apis.get_block_by_number(self.currency, self.current_block_number)
             for transaction in transactions:
-                for exchange in exchanges:
-                    time_exchange = exchange["time_exchange"]
-                    block_time_diff = (time_exchange - transaction["blocktime"]).total_seconds()
-                    tx_time_diff = (time_exchange - transaction["time"]).total_seconds()
-                    if block_time_diff < -120:
+                for exchange in self.exchanges:
+                    block_time_diff = (exchange["time_exchange"] - transaction["blocktime"]).total_seconds()
+                    tx_time_diff = (exchange["time_exchange"] - transaction["time"]).total_seconds()
+                    if tx_time_diff < -5*60:
                         break
-                    elif block_time_diff < 3*60 and tx_time_diff < 15*60:
-                        if exchange["amount_from"] == transaction["amount"]:
+                    elif tx_time_diff < 5*60:
+                        # Note: float rounds numbers here. str used because float comparation in python not always working.
+                        # This is needed if exchanges are retrieved from DB and not directly from the Shapeshift API
+                        if str(float(exchange["amount_from"])) == str(float(transaction["amount"])):
                             exchange_details = Shapeshift_api.get_exchange(transaction["address"])
                             if exchange_details["status"] == "complete" and \
                                             exchange_details["outgoingType"] == exchange["currency_to"]:
@@ -37,6 +37,7 @@ class Data_retriever(object):
                                                                             exchange_details["withdraw"],
                                                                             transaction["hash"],
                                                                             exchange_details["transaction"],
+                                                                            transaction["time"],
                                                                             transaction["blocktime"],
                                                                             self.current_block_number,
                                                                             exchange["id"]
@@ -44,8 +45,8 @@ class Data_retriever(object):
                                 Corresponding_tx.search_corresponding_transaction(exchange_details["outgoingType"],
                                                                                   exchange_details["transaction"],
                                                                                   exchange["id"])
-                                exchanges.remove(exchange)
+                                self.exchanges.remove(exchange)
                                 break
-                    else:
-                        exchanges.remove(exchange)
+                    elif block_time_diff >= 5*60:
+                        self.exchanges.remove(exchange)
             self.current_block_number = self.current_block_number - 1
