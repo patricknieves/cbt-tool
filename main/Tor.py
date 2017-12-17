@@ -3,7 +3,7 @@ from stem.control import Controller
 
 
 def change_ip():
-    with Controller.from_port(port = 9051) as controller:
+    with Controller.from_port(port=9051) as controller:
         controller.authenticate()
         controller.signal(Signal.NEWNYM)
 

@@ -8,7 +8,7 @@ from main import Database_manager
 def main():
     setup_db()
     Database_manager.delete_all_scraper_data()
-    get_shapeshift_exchanges(5*60)
+    get_shapeshift_exchanges(5*60*60)
     find_exchange_data()
 
 
@@ -87,9 +87,9 @@ def find_exchange_data_instant(exchanges):
 
 
 def find_exchange_data_from_exact_block():
-    btc_finder = Data_retriever("BTC", 498732)
-    eth_finder = Data_retriever("ETH", 4713307)
-    ltc_finder = Data_retriever("LTC", 1330146)
+    btc_finder = Data_retriever("BTC", 498992)
+    eth_finder = Data_retriever("ETH", 4723750)
+    ltc_finder = Data_retriever("LTC", 1331127)
     print ("Searching for BTC exchanges...")
     btc_finder.find_exchanges()
     print ("Searching for ETH exchanges...")

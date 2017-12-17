@@ -22,7 +22,7 @@ class Data_retriever(object):
                     tx_time_diff = (exchange["time_exchange"] - transaction["time"]).total_seconds()
                     if tx_time_diff < -5*60:
                         break
-                    elif tx_time_diff < 5*60:
+                    elif tx_time_diff < 6*60:
                         # Note: float rounds numbers here. str used because float comparation in python not always working.
                         # This is needed if exchanges are retrieved from DB and not directly from the Shapeshift API
                         if str(float(exchange["amount_from"])) == str(float(transaction["amount"])):

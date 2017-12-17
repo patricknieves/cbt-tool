@@ -12,17 +12,14 @@ def main():
     Database_manager.delete_all_data()
 
     # Find Exchanges
-    btc2eth_finder = Exchange_finder("BTC", "ETH")
-    btc2eth_finder.find_exchanges()
-    eth2btc_finder = Exchange_finder("ETH", "BTC")
-    #eth2btc_finder.find_exchanges()
-    btc2ltc_finder = Exchange_finder("BTC", "LTC")
-    #btc2ltc_finder.find_exchanges()
-    ltc2btc_finder = Exchange_finder("LTC", "BTC")
-    #ltc2btc_finder.find_exchanges()
-    eth2ltc_finder = Exchange_finder("ETH", "LTC")
-    #eth2ltc_finder.find_exchanges()
-    ltc2eth_finder = Exchange_finder("LTC", "ETH")
-    #ltc2eth_finder.find_exchanges()
+    #print ("Searching for BTC-ETH exchanges...")
+    #Exchange_finder("BTC", "ETH").find_exchanges(20*60)
+    print ("Searching for ETH-BTC exchanges...")
+    Exchange_finder("ETH", "BTC").find_exchanges()
+
+    #Exchange_finder("BTC", "LTC").find_exchanges()
+    #Exchange_finder("LTC", "BTC").find_exchanges()
+    #Exchange_finder("ETH", "LTC").find_exchanges()
+    #Exchange_finder("LTC", "ETH").find_exchanges()
 
 if __name__ == "__main__": main()

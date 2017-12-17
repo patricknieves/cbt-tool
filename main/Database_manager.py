@@ -24,17 +24,21 @@ def create_table_exchanges():
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "currency_from varchar(45) DEFAULT NULL,"
                 "currency_to varchar(45) DEFAULT NULL,"
-                "amount_from float DEFAULT NULL,"
-                "amount_to float DEFAULT NULL,"
-                "fee_from float DEFAULT NULL,"
-                "fee_to float DEFAULT NULL,"
-                "fee_exchange float DEFAULT NULL,"
+                "amount_from DECIMAL(26, 20) DEFAULT NULL,"
+                "amount_to DECIMAL(26, 20) DEFAULT NULL,"
+                "fee_from DECIMAL(26, 20) DEFAULT NULL,"
+                "fee_to DECIMAL(26, 20) DEFAULT NULL,"
+                "fee_exchange DECIMAL(26, 20) DEFAULT NULL,"
                 "address_from varchar(120) DEFAULT NULL,"
                 "address_to varchar(120) DEFAULT NULL,"
                 "hash_from varchar(120) DEFAULT NULL,"
                 "hash_to varchar(120) DEFAULT NULL,"
                 "time_from datetime DEFAULT NULL,"
+                "time_block_from datetime DEFAULT NULL,"
                 "time_to datetime DEFAULT NULL,"
+                "time_block_to datetime DEFAULT NULL,"
+                "block_nr_from int(11) DEFAULT NULL,"
+                "block_nr_to int(11) DEFAULT NULL,"
                 "dollarvalue_from float DEFAULT NULL,"
                 "dollarvalue_to float DEFAULT NULL,"
                 "exchanger varchar(120) DEFAULT NULL,"
@@ -77,7 +81,11 @@ def insert_exchange(currency_from,
                     hash_from,
                     hash_to,
                     time_from,
+                    time_block_from,
                     time_to,
+                    time_block_to,
+                    block_nr_from,
+                    block_nr_to,
                     dollarvalue_from,
                     dollarvalue_to,
                     exchanger
@@ -97,12 +105,16 @@ def insert_exchange(currency_from,
             "hash_from,"
             "hash_to,"
             "time_from,"
+            "time_block_from,"
             "time_to,"
+            "time_block_to,"
+            "block_nr_from,"
+            "block_nr_to,"
             "dollarvalue_from,"
             "dollarvalue_to,"
             "exchanger"
             ") "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
             (currency_from,
              currency_to,
              amount_from,
@@ -115,7 +127,11 @@ def insert_exchange(currency_from,
              hash_from,
              hash_to,
              time_from,
+             time_block_from,
              time_to,
+             time_block_to,
+             block_nr_from,
+             block_nr_to,
              dollarvalue_from,
              dollarvalue_to,
              exchanger
