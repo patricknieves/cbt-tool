@@ -1,6 +1,8 @@
 import Database_manager
 import Currency_apis
 import Shapeshift_api
+import datetime
+import time
 import Settings
 from Currency_data import Currency_data
 
@@ -9,82 +11,86 @@ from Currency_data import Currency_data
 
 class Exchange_finder(object):
 
-    def __init__(self, currency_from, currency_to):
-        self.currency_from = currency_from
-        self.currency_to = currency_to
-
-    def find_exchanges(self, check_until_block_nr_from=None, block_nr_from=None, block_nr_to=None):
+    def find_exchanges(self, currencies_array):
+        blocks_from = []
         transactions_to = []
-        time_newest_block_to = None
-        currency_data_from = Currency_data(self.currency_from, "USD")
-        currency_data_to = Currency_data(self.currency_to, "USD")
-        current_block_number_from = Currency_apis.get_last_block_number(self.currency_from) if block_nr_from is None \
-            else block_nr_from
-        print current_block_number_from
-        current_block_number_to = Currency_apis.get_last_block_number(self.currency_to) if block_nr_to is None \
-            else block_nr_to
-        print current_block_number_to
-        check_until_block_nr_from = current_block_number_from - 150 if check_until_block_nr_from is None \
-            else check_until_block_nr_from
+        time_newest_block_dict = {}
+        currency_data_dict = {}
+        current_block_number_dict = {}
 
-        while current_block_number_from >= check_until_block_nr_from:
-            print current_block_number_from
-            transactions_from = Currency_apis.get_block_by_number(self.currency_from, current_block_number_from)
-            for transaction_from in transactions_from:
-                # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
-                while not time_newest_block_to or (time_newest_block_to - transaction_from["blocktime"]).total_seconds() > 0.5*60:
-                    print current_block_number_to
-                    new_transactions_to = Currency_apis.get_block_by_number(self.currency_to, current_block_number_to)
-                    transactions_to.extend(new_transactions_to)
-                    time_newest_block_to = new_transactions_to[0]["blocktime"]
-                    current_block_number_to = current_block_number_to - 1
-                transactions_to.sort(key=lambda x: x["time"], reverse=True)
-                for transaction_to in transactions_to:
-                    exchange_time_diff = (transaction_to["time"] - transaction_from["blocktime"]).total_seconds()
-                    # transaction takes at least half min
-                    if exchange_time_diff < 0.5*60:
-                        break
-                    # Searching for corresponding transaction not older than 5 min
-                    elif exchange_time_diff < 5*60:
-                        # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
-                        dollarvalue_from = currency_data_from.get_value(transaction_from["blocktime"])
-                        dollarvalue_to = currency_data_to.get_value(transaction_from["blocktime"])
-                        rate_cmc = dollarvalue_from/dollarvalue_to
-                        # Compare Values with Rates
-                        expected_output = transaction_from["amount"] * rate_cmc
-                        if expected_output * 0.95 < transaction_to["amount"] < expected_output:
-                            if not transaction_from["fee"] and self.currency_from == "BTC":
-                                transaction_from["fee"] = Currency_apis.get_fee_BTC(transaction_from["hash"])
-                            if not transaction_to["fee"] and self.currency_to == "BTC":
-                                transaction_to["fee"] = Currency_apis.get_fee_BTC(transaction_to["hash"])
-                            exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], self.currency_to)
-                            # Update DB
-                            Database_manager.insert_exchange(self.currency_from,
-                                                             self.currency_to,
-                                                             transaction_from["amount"],
-                                                             transaction_to["amount"],
-                                                             transaction_from["fee"],
-                                                             transaction_to["fee"],
-                                                             (expected_output - transaction_to["amount"]),
-                                                             transaction_from["address"],
-                                                             transaction_to["address"],
-                                                             transaction_from["hash"],
-                                                             transaction_to["hash"],
-                                                             transaction_from["time"].strftime('%Y-%m-%d %H:%M:%S'),
-                                                             transaction_from["blocktime"].strftime('%Y-%m-%d %H:%M:%S'),
-                                                             transaction_to["time"].strftime('%Y-%m-%d %H:%M:%S'),
-                                                             transaction_to["blocktime"].strftime('%Y-%m-%d %H:%M:%S'),
-                                                             transaction_from["block_nr"],
-                                                             transaction_to["block_nr"],
-                                                             dollarvalue_from,
-                                                             dollarvalue_to,
-                                                             exchanger
-                                                             )
-                            #transactions_to.remove(transaction_to)
-                            #break
-                    else:
-                        transactions_to.remove(transaction_to)
+        start_time = time.time()
+        current_search_time = start_time
+
+        for currency in currencies_array:
+            currency_data_dict[currency] = Currency_data(currency, "USD")
+            current_block_number = Currency_apis.get_last_block_number(currency)
+            current_block_number_dict[currency] = current_block_number
+            print current_block_number
+
+        while start_time - current_search_time < 60*60:
+            # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
+            current_search_time = current_search_time - 10*60
+            for currency in currencies_array:
+                while currency not in time_newest_block_dict or time_newest_block_dict[currency] > datetime.datetime.utcfromtimestamp(current_search_time):
+                    new_transactions = Currency_apis.get_block_by_number(currency, current_block_number_dict[currency])
+                    if new_transactions:
+                        blocks_from.append(new_transactions)
+                        transactions_to.extend(new_transactions)
+                        time_newest_block_dict[currency] = new_transactions[0]["blocktime"]
+                    current_block_number_dict[currency] = current_block_number_dict[currency] - 1
+
+            blocks_from.sort(key=lambda x: x[0]["blocktime"], reverse=True)
+            transactions_to.sort(key=lambda x: x["time"], reverse=True)
+
+            # Search for Transactions between two currencies
+            for block_from in list(blocks_from):
+                if block_from[0]["blocktime"] < datetime.datetime.utcfromtimestamp(current_search_time):
+                    break
                 else:
-                    continue
-                break
-            current_block_number_from = current_block_number_from - 1
+                    blocks_from.remove(block_from)
+                    for transaction_from in block_from:
+                        for transaction_to in list(transactions_to):
+                            # TODO APIs don't return (correct) Transaction received times (ETH/LTC only Block time)
+                            exchange_time_diff = (transaction_to["time"] - transaction_from["blocktime"]).total_seconds()
+                            # transaction takes at least half min
+                            if exchange_time_diff < Settings.get_exchange_time_lower_bound(transaction_to["symbol"]):
+                                break
+                            # Searching for corresponding transaction not older than X min
+                            elif exchange_time_diff < Settings.get_exchange_time_higher_bound(transaction_to["symbol"]):
+                                if transaction_to["symbol"] != transaction_from["symbol"]:
+                                    # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
+                                    dollarvalue_from = currency_data_dict[transaction_from["symbol"]].get_value(transaction_from["blocktime"])
+                                    dollarvalue_to = currency_data_dict[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
+                                    rate_cmc = dollarvalue_from/dollarvalue_to
+                                    # Compare Values with Rates
+                                    expected_output = transaction_from["amount"] * rate_cmc
+                                    # TODO actually transaction_to["amount"] + transaction_to["fee"] (+ transaction_to["exchange_fee"]) - Problem APIs don't return (correct) fees (BTC/ETH)
+                                    if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
+                                        exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["symbol"])
+                                        # Update DB
+                                        Database_manager.insert_exchange(transaction_from["symbol"],
+                                                                         transaction_to["symbol"],
+                                                                         transaction_from["amount"],
+                                                                         transaction_to["amount"],
+                                                                         transaction_from["fee"],
+                                                                         transaction_to["fee"],
+                                                                         (expected_output - transaction_to["amount"]),
+                                                                         transaction_from["address"],
+                                                                         transaction_to["address"],
+                                                                         transaction_from["hash"],
+                                                                         transaction_to["hash"],
+                                                                         transaction_from["time"].strftime('%Y-%m-%d %H:%M:%S'),
+                                                                         transaction_from["blocktime"].strftime('%Y-%m-%d %H:%M:%S'),
+                                                                         transaction_to["time"].strftime('%Y-%m-%d %H:%M:%S'),
+                                                                         transaction_to["blocktime"].strftime('%Y-%m-%d %H:%M:%S'),
+                                                                         transaction_from["block_nr"],
+                                                                         transaction_to["block_nr"],
+                                                                         dollarvalue_from,
+                                                                         dollarvalue_to,
+                                                                         exchanger
+                                                                         )
+                            else:
+                                transactions_to.remove(transaction_to)
+                        else:
+                            continue
+                        break

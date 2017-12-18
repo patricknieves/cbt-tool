@@ -17,7 +17,7 @@ class Data_retriever(object):
         while self.exchanges:
             transactions = Currency_apis.get_block_by_number(self.currency, self.current_block_number)
             for transaction in transactions:
-                for exchange in self.exchanges:
+                for exchange in list(self.exchanges):
                     block_time_diff = (exchange["time_exchange"] - transaction["blocktime"]).total_seconds()
                     tx_time_diff = (exchange["time_exchange"] - transaction["time"]).total_seconds()
                     if tx_time_diff < -5*60:

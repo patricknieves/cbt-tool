@@ -12,14 +12,8 @@ def main():
     Database_manager.delete_all_data()
 
     # Find Exchanges
-    #print ("Searching for BTC-ETH exchanges...")
-    #Exchange_finder("BTC", "ETH").find_exchanges(20*60)
-    print ("Searching for ETH-BTC exchanges...")
-    Exchange_finder("ETH", "BTC").find_exchanges()
-
-    #Exchange_finder("BTC", "LTC").find_exchanges()
-    #Exchange_finder("LTC", "BTC").find_exchanges()
-    #Exchange_finder("ETH", "LTC").find_exchanges()
-    #Exchange_finder("LTC", "ETH").find_exchanges()
+    print ("Searching for Exchanges...")
+    currencies_array = ["BTC", "ETH", "LTC"]
+    Exchange_finder().find_exchanges(currencies_array)
 
 if __name__ == "__main__": main()
