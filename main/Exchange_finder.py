@@ -57,7 +57,7 @@ class Exchange_finder(object):
                                 break
                             # Searching for corresponding transaction not older than X min
                             elif exchange_time_diff < Settings.get_exchange_time_higher_bound(transaction_to["symbol"]):
-                                if transaction_to["symbol"] != transaction_from["symbol"]:
+                                if transaction_from["symbol"] != transaction_to["symbol"]:
                                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
                                     dollarvalue_from = currency_data_dict[transaction_from["symbol"]].get_value(transaction_from["blocktime"])
                                     dollarvalue_to = currency_data_dict[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
