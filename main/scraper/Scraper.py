@@ -8,7 +8,7 @@ from main import Database_manager
 def main():
     setup_db()
     Database_manager.delete_all_scraper_data()
-    get_shapeshift_exchanges(5*60*60)
+    get_shapeshift_exchanges(30*60)
     find_exchange_data()
 
 

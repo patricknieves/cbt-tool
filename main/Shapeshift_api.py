@@ -23,7 +23,7 @@ def get_exchange(address_from):
         sys.exit("Couldn't get transaction data from Shapeshift: " + address_from)
 
 
-def get_exchanger_name(address_from, outgoing_coin):
+def get_exchanger_name(address_from, address_to):
     Tor.change_ip()
     for attempt in range(5):
         try:
@@ -33,7 +33,7 @@ def get_exchanger_name(address_from, outgoing_coin):
             time.sleep(60)
             Tor.change_ip()
         else:
-            if exchange_details["status"] == "complete" and exchange_details["outgoingType"] == outgoing_coin:
+            if exchange_details["status"] == "complete" and exchange_details["withdraw"] == address_to:
                 return "Shapeshift"
             return "Unknown"
     else:

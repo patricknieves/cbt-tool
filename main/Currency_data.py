@@ -22,7 +22,11 @@ class Currency_data(object):
                 self.history.remove(data_set)
                 if not self.history:
                     return self.get_value(transaction_time)
-            elif 0 < (transaction_time - data_set["time"]) <= 3600:
+            # Ignore Data which is older but still not older than 1 hour
+            elif (transaction_time - data_set["time"]) < 0:
+                continue
+            # Return rate if data set is in range of 1 hour
+            elif (transaction_time - data_set["time"]) <= 3600:
                 return max(data_set["low"], data_set["high"]) - abs(data_set["low"] - data_set["high"])/2
             else:
                 print ("No currency rate data found for Exchange from " + self.currency_from + " to " + self.currency_to)

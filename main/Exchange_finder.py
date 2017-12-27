@@ -44,8 +44,12 @@ class Exchange_finder(object):
 
             # Search for Transactions between two currencies
             for block_from in list(blocks_from):
+                # Stop searching and get more blocks if time limit exceeded
                 if block_from[0]["blocktime"] < datetime.datetime.utcfromtimestamp(current_search_time):
                     break
+                # Go to next Block if Blocktime is later than time of latest transaction_to
+                elif block_from[0]["blocktime"] > transactions_to[0]["time"]:
+                    continue
                 else:
                     blocks_from.remove(block_from)
                     for transaction_from in block_from:
@@ -66,15 +70,16 @@ class Exchange_finder(object):
                                     expected_output = transaction_from["amount"] * rate_cmc
                                     # TODO actually transaction_to["amount"] + transaction_to["fee"] (+ transaction_to["exchange_fee"]) - Problem APIs don't return (correct) fees (BTC/ETH)
                                     if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
-                                        exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["symbol"])
+                                        exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["address"])
                                         # Update DB
+                                        fee_exchange = expected_output - transaction_to["amount"]
                                         Database_manager.insert_exchange(transaction_from["symbol"],
                                                                          transaction_to["symbol"],
                                                                          transaction_from["amount"],
                                                                          transaction_to["amount"],
                                                                          transaction_from["fee"],
                                                                          transaction_to["fee"],
-                                                                         (expected_output - transaction_to["amount"]),
+                                                                         fee_exchange,
                                                                          transaction_from["address"],
                                                                          transaction_to["address"],
                                                                          transaction_from["hash"],
@@ -89,8 +94,6 @@ class Exchange_finder(object):
                                                                          dollarvalue_to,
                                                                          exchanger
                                                                          )
+                            # Delete transactions older than X min
                             else:
                                 transactions_to.remove(transaction_to)
-                        else:
-                            continue
-                        break
