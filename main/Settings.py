@@ -31,7 +31,7 @@ def get_exchange_time_lower_bound(currency):
         return 0.5*60
 
 
-def get_exchange_time_higher_bound(currency):
+def get_exchange_time_upper_bound(currency):
     if currency == "BTC":
         return 5*60
     elif currency == "ETH":
