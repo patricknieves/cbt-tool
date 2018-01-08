@@ -4,6 +4,7 @@ import Shapeshift_api
 import datetime
 import time
 import Settings
+import Address_manager
 from Currency_data import Currency_data
 
 # TODO change all API Requests with full node Requests
@@ -70,6 +71,9 @@ class Exchange_finder(object):
                                     expected_output = transaction_from["amount"] * rate_cmc
                                     # TODO actually transaction_to["amount"] + transaction_to["fee"] (+ transaction_to["exchange_fee"]) - Problem APIs don't return (correct) fees (BTC/ETH)
                                     if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
+
+                                        # TODO check if connected to a exchanger
+
                                         exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["address"])
                                         # Update DB
                                         fee_exchange = expected_output - transaction_to["amount"]

@@ -8,8 +8,9 @@ from main import Database_manager
 def main():
     setup_db()
     Database_manager.delete_all_scraper_data()
-    get_shapeshift_exchanges(30*60)
-    find_exchange_data()
+    get_shapeshift_exchanges_limitless()
+    #get_shapeshift_exchanges(30*60)
+    #find_exchange_data()
 
 
 # Use this method when Exchanges Table already filled but additional data still wasn't found
@@ -22,6 +23,19 @@ def setup_db():
     Database_manager.create_database()
     Database_manager.initialize_db()
     Database_manager.create_table_scraper()
+
+
+def get_shapeshift_exchanges_limitless():
+    shapeshift_manager = Shapeshift()
+    # Run a whole day
+    while True:
+        start_time_loop = time.time()
+        shapeshift_manager.get_new_exchanges()
+        duration_to_wait = shapeshift_manager.duration.total_seconds()/2
+        elapsed_time_loop = time.time() - start_time_loop
+        if elapsed_time_loop < duration_to_wait:
+            print ("Done! Wait " + str(duration_to_wait - elapsed_time_loop) + " seconds")
+            time.sleep(duration_to_wait - elapsed_time_loop)
 
 
 def get_shapeshift_exchanges(runtime_in_sec):
