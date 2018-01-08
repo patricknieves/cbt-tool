@@ -1,6 +1,6 @@
 import time
 from threading import Thread
-from main.scraper.Shapeshift import Shapeshift
+from Shapeshift import Shapeshift
 from Data_retriever import Data_retriever
 from main import Database_manager
 
