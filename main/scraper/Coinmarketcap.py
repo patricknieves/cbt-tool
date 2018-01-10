@@ -29,7 +29,7 @@ class Coinmarketcap(object):
                 time.sleep(5)
                 Tor.change_ip()
             else:
-                return requests.get("https://api.coinmarketcap.com/v1/ticker/?limit=0").json()
+                return rates
         else:
             traceback.print_exc()
             sys.exit("Couldn't get exchanges from Shapeshift")

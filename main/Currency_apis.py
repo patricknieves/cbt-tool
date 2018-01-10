@@ -88,6 +88,7 @@ def standardize(currency, json):
                 dict_item["blocktime"] = dict_item["time"]
                 dict_item["fee"] = (int(transaction["gas"], 16)*int(transaction["gasPrice"], 16)) / 1E+18
                 dict_item["hash"] = transaction["hash"]
+                dict_item["from"] = transaction["from"]
                 dict_item["address"] = transaction["to"]
                 dict_item["block_nr"] = int(json["number"], 16)
                 standardized_dict.append(dict_item)

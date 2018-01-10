@@ -72,7 +72,7 @@ class Exchange_finder(object):
                                     # TODO actually transaction_to["amount"] + transaction_to["fee"] (+ transaction_to["exchange_fee"]) - Problem APIs don't return (correct) fees (BTC/ETH)
                                     if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
 
-                                        # TODO check if connected to a exchanger
+                                        # TODO if ETH: check if connected to a exchanger (call 2 different methods depending if deposit or withdrawl)
 
                                         exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["address"])
                                         # Update DB
