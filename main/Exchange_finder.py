@@ -4,7 +4,7 @@ import Shapeshift_api
 import datetime
 import time
 import Settings
-import Address_manager
+from Address_manager import Address_manager
 from Currency_data import Currency_data
 
 # TODO change all API Requests with full node Requests
@@ -27,6 +27,9 @@ class Exchange_finder(object):
             current_block_number = Currency_apis.get_last_block_number(currency)
             current_block_number_dict[currency] = current_block_number
             print current_block_number
+
+        # Start Address Manager with current block numbers
+        address_manager = Address_manager(current_block_number_dict)
 
         while start_time - current_search_time < 60*60:
             # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
@@ -54,6 +57,10 @@ class Exchange_finder(object):
                 else:
                     blocks_from.remove(block_from)
                     for transaction_from in block_from:
+                        # Skip transaction_from if not exchange related
+                        if not(address_manager.is_exchange_deposit(transaction_from)):
+                            continue
+
                         for transaction_to in list(transactions_to):
                             # TODO APIs don't return (correct) Transaction received times (ETH/LTC only Block time)
                             exchange_time_diff = (transaction_to["time"] - transaction_from["blocktime"]).total_seconds()
@@ -71,10 +78,19 @@ class Exchange_finder(object):
                                     expected_output = transaction_from["amount"] * rate_cmc
                                     # TODO actually transaction_to["amount"] + transaction_to["fee"] (+ transaction_to["exchange_fee"]) - Problem APIs don't return (correct) fees (BTC/ETH)
                                     if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
+                                        # Skip transaction_to if not exchange related
+                                        if not(address_manager.is_exchange_withdrawl(transaction_to)):
+                                            continue
 
-                                        # TODO if ETH: check if connected to a exchanger (call 2 different methods depending if deposit or withdrawl)
+                                        # Filter
+                                        exchanger = "Shapeshift"
 
-                                        exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["address"])
+                                        # Check if connected to Shapeshift (Method used if no filtering before)
+                                        #exchanger = address_manager.get_exchanger_name(transaction_from, transaction_to)
+
+                                        # Check if Shapeshift Exchange using Shapeshift API
+                                        # exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["address"])
+
                                         # Update DB
                                         fee_exchange = expected_output - transaction_to["amount"]
                                         Database_manager.insert_exchange(transaction_from["symbol"],
