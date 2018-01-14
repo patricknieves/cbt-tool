@@ -66,31 +66,42 @@ def standardize(currency, json):
     standardized_dict = []
     if currency == "BTC":
         for transaction in json["tx"]:
+            dict_item = {"symbol": currency,
+                         "time": datetime.datetime.utcfromtimestamp(transaction["time"]),
+                         "blocktime": datetime.datetime.utcfromtimestamp(json["time"]),
+                         "fee": None,
+                         "hash": transaction["hash"],
+                         "block_nr": json["height"],
+                         "inputs": [],
+                         "outputs": []}
+            for input in transaction["inputs"]:
+                if input["value"] != 0 and "prev_out" in input and "addr" in input["prev_out"]:
+                    dict_item_input = {"amount": input["prev_out"]["value"] / 100000000,
+                                       "address": input["prev_out"]["addr"]}
+                    dict_item["inputs"].append(dict_item_input)
             for output in transaction["out"]:
                 if output["value"] != 0 and "addr" in output:
-                    dict_item = {}
-                    dict_item["symbol"] = currency
-                    dict_item["amount"] = output["value"]/100000000
-                    dict_item["time"] = datetime.datetime.utcfromtimestamp(transaction["time"])
-                    dict_item["blocktime"] = datetime.datetime.utcfromtimestamp(json["time"])
-                    dict_item["fee"] = None
-                    dict_item["hash"] = transaction["hash"]
-                    dict_item["address"] = output["addr"]
-                    dict_item["block_nr"] = json["height"]
-                    standardized_dict.append(dict_item)
+                    dict_item_output = {"amount": output["value"] / 100000000,
+                                        "address": output["addr"]}
+                    dict_item["outputs"].append(dict_item_output)
+            standardized_dict.append(dict_item)
+
     elif currency == "ETH":
         for transaction in json["transactions"]:
             if int(transaction["value"], 16) / 1E+18 != 0:
-                dict_item = {}
-                dict_item["symbol"] = currency
-                dict_item["amount"] = int(transaction["value"], 16) / 1E+18
-                dict_item["time"] = datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16))
-                dict_item["blocktime"] = dict_item["time"]
-                dict_item["fee"] = (int(transaction["gas"], 16)*int(transaction["gasPrice"], 16)) / 1E+18
-                dict_item["hash"] = transaction["hash"]
-                dict_item["from"] = transaction["from"]
-                dict_item["address"] = transaction["to"]
-                dict_item["block_nr"] = int(json["number"], 16)
+                dict_item = {"symbol": currency, "amount": int(transaction["value"], 16) / 1E+18,
+                             "time": datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16)),
+                             "blocktime": datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16)), # same as tx time
+                             "fee": (int(transaction["gas"], 16) * int(transaction["gasPrice"], 16)) / 1E+18,
+                             "hash": transaction["hash"], "block_nr": int(json["number"], 16),
+                             "inputs": [],
+                             "outputs": []}
+                dict_item_input = {"amount": int(transaction["value"], 16) / 1E+18,
+                                   "address": transaction["from"]}
+                dict_item["inputs"].append(dict_item_input)
+                dict_item_output = {"amount": int(transaction["value"], 16) / 1E+18,
+                                    "address": transaction["to"]}
+                dict_item["outputs"].append(dict_item_output)
                 standardized_dict.append(dict_item)
 
         # for transaction in json:
@@ -106,18 +117,24 @@ def standardize(currency, json):
         #         standardized_dict.append(dict_item)
     elif currency == "LTC":
         for transaction in json["txs"]:
-            for output in transaction["outputs"]:
+            dict_item = {"symbol": currency,
+                         "time": datetime.datetime.utcfromtimestamp(json["time"]),
+                         "blocktime": datetime.datetime.utcfromtimestamp(json["time"]), # same as tx time
+                         "fee": transaction["fee"],
+                         "hash": transaction["txid"],
+                         "block_nr": json["block_no"]}
+            for input in transaction["inputs"]:
+                if float(input["value"]) != 0:
+                    dict_item_input = {"amount": float(input["value"]),
+                                       "address": input["address"]}
+                    dict_item["inputs"].append(dict_item_input)
+            for output in transaction["out"]:
                 if float(output["value"]) != 0:
-                    dict_item = {}
-                    dict_item["symbol"] = currency
-                    dict_item["amount"] = float(output["value"])
-                    dict_item["time"] = datetime.datetime.utcfromtimestamp(json["time"])
-                    dict_item["blocktime"] = dict_item["time"]
-                    dict_item["fee"] = transaction["fee"]
-                    dict_item["hash"] = transaction["txid"]
-                    dict_item["address"] = output["address"]
-                    dict_item["block_nr"] = json["block_no"]
-                    standardized_dict.append(dict_item)
+                    dict_item_output = {"amount": float(output["value"]),
+                                        "address": output["address"]}
+                    dict_item["outputs"].append(dict_item_output)
+            standardized_dict.append(dict_item)
+
     else:
         print ("Couldn't standardize block for " + currency)
         return
