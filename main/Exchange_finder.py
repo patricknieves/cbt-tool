@@ -31,7 +31,7 @@ class Exchange_finder(object):
         # Start Address Manager with current block numbers
         address_manager = Address_manager(current_block_number_dict)
 
-        while start_time - current_search_time < 60*60:
+        while start_time - current_search_time < 3*60*60:
             # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
             current_search_time = current_search_time - 10*60
             for currency in currencies_array:
@@ -48,6 +48,7 @@ class Exchange_finder(object):
 
             # Search for Transactions between two currencies
             for block_from in list(blocks_from):
+                print block_from[0]["block_nr"]
                 # Stop searching and get more blocks if time limit exceeded
                 if block_from[0]["blocktime"] < datetime.datetime.utcfromtimestamp(current_search_time):
                     break

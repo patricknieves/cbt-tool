@@ -13,7 +13,8 @@ def main():
 
     # Find Exchanges
     print ("Searching for Exchanges...")
-    currencies_array = ["BTC", "ETH", "LTC"]
+    #currencies_array = ["BTC", "ETH", "LTC"]
+    currencies_array = ["BTC", "ETH"]
     Exchange_finder().find_exchanges(currencies_array)
 
 if __name__ == "__main__": main()
