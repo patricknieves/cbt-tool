@@ -52,7 +52,7 @@ class Address_manager(object):
         for address_transaction in self.shapeshift_transactions:
             if exchange_transaction["blocktime"] < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
                 # Shapeshift sends deposits to main address after certain time (approx. 2 hours)
-                if exchange_transaction["address"] == str(address_transaction["from"]):
+                if exchange_transaction["outputs"][0]["address"] == str(address_transaction["from"]):
                     return True
             else:
                 return False
@@ -62,7 +62,8 @@ class Address_manager(object):
         for address_transaction in reversed(self.shapeshift_transactions):
             if exchange_transaction["blocktime"] > datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
                 # Shapeshift sends money from main address to sub addresses (mostly > 400 ETH), which send withdrawls to customers
-                if exchange_transaction["from"] == str(address_transaction["to"]):
+                if exchange_transaction["inputs"][0]["address"] == str(address_transaction["to"]):
+                    exchange_transaction["is_exchange_withdrawl"] = True
                     return True
             else:
                 return False

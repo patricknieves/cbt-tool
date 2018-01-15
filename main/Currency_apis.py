@@ -73,29 +73,40 @@ def standardize(currency, json):
                          "hash": transaction["hash"],
                          "block_nr": json["height"],
                          "inputs": [],
-                         "outputs": []}
+                         "outputs": [],
+                         "is_exchange_withdrawl": None
+                         }
+            # Get inputs and outputs & calculate fee
+            input_value = 0
+            output_value = 0
             for tx_input in transaction["inputs"]:
                 if tx_input["value"] != 0 and "prev_out" in tx_input and "addr" in tx_input["prev_out"]:
                     dict_item_input = {"amount": tx_input["prev_out"]["value"] / 100000000,
                                        "address": tx_input["prev_out"]["addr"]}
                     dict_item["inputs"].append(dict_item_input)
+                    input_value = input_value + tx_input["prev_out"]["value"] / 100000000
             for tx_output in transaction["out"]:
                 if tx_output["value"] != 0 and "addr" in tx_output:
                     dict_item_output = {"amount": tx_output["value"] / 100000000,
                                         "address": tx_output["addr"]}
                     dict_item["outputs"].append(dict_item_output)
+                    output_value = output_value + tx_output["value"] / 100000000
+            # If input_value == 0 it is a coinbase tx and there are no fees
+            if input_value != 0:
+                dict_item["fee"] = input_value - output_value
             standardized_dict.append(dict_item)
 
     elif currency == "ETH":
         for transaction in json["transactions"]:
             if int(transaction["value"], 16) / 1E+18 != 0:
                 dict_item = {"symbol": currency, "amount": int(transaction["value"], 16) / 1E+18,
-                             "time": datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16)),
-                             "blocktime": datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16)), # same as tx time
-                             "fee": (int(transaction["gas"], 16) * int(transaction["gasPrice"], 16)) / 1E+18,
+                             "time": datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16)), # same as block time/ tx time not provided
+                             "blocktime": datetime.datetime.utcfromtimestamp(int(json["timestamp"], 16)),
+                             "fee": (int(transaction["gas"], 16) * int(transaction["gasPrice"], 16)) / 1E+18, # This is gas provided, but not real gas spent
                              "hash": transaction["hash"], "block_nr": int(json["number"], 16),
                              "inputs": [],
-                             "outputs": []}
+                             "outputs": [],
+                             "is_exchange_withdrawl": None}
                 dict_item_input = {"amount": int(transaction["value"], 16) / 1E+18,
                                    "address": transaction["from"]}
                 dict_item["inputs"] = [dict_item_input]
@@ -118,11 +129,12 @@ def standardize(currency, json):
     elif currency == "LTC":
         for transaction in json["txs"]:
             dict_item = {"symbol": currency,
-                         "time": datetime.datetime.utcfromtimestamp(json["time"]),
-                         "blocktime": datetime.datetime.utcfromtimestamp(json["time"]), # same as tx time
+                         "time": datetime.datetime.utcfromtimestamp(json["time"]), # same as block time/ tx time not provided
+                         "blocktime": datetime.datetime.utcfromtimestamp(json["time"]),
                          "fee": transaction["fee"],
                          "hash": transaction["txid"],
-                         "block_nr": json["block_no"]}
+                         "block_nr": json["block_no"],
+                         "is_exchange_withdrawl": None}
             for tx_input in transaction["inputs"]:
                 if float(tx_input["value"]) != 0:
                     dict_item_input = {"amount": float(tx_input["value"]),

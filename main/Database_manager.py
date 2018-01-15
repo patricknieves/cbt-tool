@@ -44,6 +44,7 @@ def create_table_exchanges():
                 "exchanger varchar(120) DEFAULT NULL,"
                 "PRIMARY KEY (id))")
 
+
 def create_table_scraper():
     cur.execute("CREATE TABLE IF NOT EXISTS scraper ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
@@ -68,6 +69,7 @@ def create_table_scraper():
                 "dollarvalue_from float DEFAULT NULL,"
                 "dollarvalue_to float DEFAULT NULL,"
                 "PRIMARY KEY (id))")
+
 
 def insert_exchange(currency_from,
                     currency_to,
@@ -143,6 +145,7 @@ def insert_exchange(currency_from,
         traceback.print_exc()
         db.rollback()
 
+
 def insert_shapeshift_exchange(currency_from,
                                currency_to,
                                amount_from,
@@ -177,23 +180,24 @@ def insert_shapeshift_exchange(currency_from,
         traceback.print_exc()
         db.rollback()
 
+
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []
     try:
         cur.execute("SELECT * FROM cross_block.scraper WHERE currency_from = %s AND amount_to IS NULL", currency)
         results = cur.fetchall()
         for row in results:
-            dict_item = {}
-            dict_item["id"] = row[0]
-            dict_item["currency_from"] = row[1]
-            dict_item["currency_to"] = row[2]
-            dict_item["amount_from"] = row[3]
-            dict_item["time_exchange"] = row[14]
+            dict_item = {"id": row[0],
+                         "currency_from": row[1],
+                         "currency_to": row[2],
+                         "amount_from": row[3],
+                         "time_exchange": row[14]}
             standardized_dict.append(dict_item)
     except:
         print("Problem retrieving Exchanges from DB")
         traceback.print_exc()
     return list(reversed(standardized_dict))
+
 
 def update_shapeshift_exchange(amount_to,
                                fee_from,
@@ -258,13 +262,16 @@ def update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, 
         traceback.print_exc()
         db.rollback()
 
+
 # Delete all found exchanges in DB
 def delete_all_data():
     cur.execute("TRUNCATE TABLE exchanges")
 
+
 # Delete all found shapeshift exchanges in DB
 def delete_all_scraper_data():
     cur.execute("TRUNCATE TABLE scraper")
+
 
 def closeConnection():
     print "Program stopped!"

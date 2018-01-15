@@ -33,7 +33,7 @@ class Shapeshift(object):
             if new_exchanges:
                 self.previous_exchanges = new_exchanges
                 for exchange in reversed(new_exchanges):
-                    # Get dollar rate and current SS fees
+                    # Get dollar rate and current Shapeshift fees
                     dollarvalue_from = self.cmc.get_dollarvalue(exchange["curIn"])
                     dollarvalue_to = self.cmc.get_dollarvalue(exchange["curOut"])
                     fee_exchange = self.shapeshift_data.get_shapeshift_fees(exchange["curOut"])
@@ -46,12 +46,11 @@ class Shapeshift(object):
                                                                 dollarvalue_from,
                                                                 dollarvalue_to
                                                                 )
-                    dict_item = {}
-                    dict_item["id"] = exchange_db_id
-                    dict_item["currency_from"] = exchange["curIn"]
-                    dict_item["currency_to"] = exchange["curOut"]
-                    dict_item["amount_from"] = exchange["amount"]
-                    dict_item["time_exchange"] = datetime.datetime.utcfromtimestamp(exchange["timestamp"])
+                    dict_item = {"id": exchange_db_id,
+                                 "currency_from": exchange["curIn"],
+                                 "currency_to": exchange["curOut"],
+                                 "amount_from": exchange["amount"],
+                                 "time_exchange": datetime.datetime.utcfromtimestamp(exchange["timestamp"])}
                     self.standardized_new_transactions.append(dict_item)
         return self.standardized_new_transactions
 
