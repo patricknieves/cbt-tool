@@ -15,6 +15,9 @@ def main():
     print ("Searching for Exchanges...")
     #currencies_array = ["BTC", "ETH", "LTC"]
     currencies_array = ["BTC", "ETH"]
-    Exchange_finder().find_exchanges(currencies_array)
+    # Set static block numbers instead of current block numbers
+    current_block_number_dict = {"BTC": 504330, "ETH": 4912461}
+    exchange_finder = Exchange_finder(currencies_array, current_block_number_dict=current_block_number_dict)
+    exchange_finder.find_exchanges()
 
 if __name__ == "__main__": main()

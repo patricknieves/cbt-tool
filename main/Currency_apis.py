@@ -80,7 +80,7 @@ def standardize(currency, json):
             input_value = 0
             output_value = 0
             for tx_input in transaction["inputs"]:
-                if tx_input["value"] != 0 and "prev_out" in tx_input and "addr" in tx_input["prev_out"]:
+                if "prev_out" in tx_input and tx_input["prev_out"]["value"] != 0 and "addr" in tx_input["prev_out"]:
                     dict_item_input = {"amount": tx_input["prev_out"]["value"] / 100000000,
                                        "address": tx_input["prev_out"]["addr"]}
                     dict_item["inputs"].append(dict_item_input)

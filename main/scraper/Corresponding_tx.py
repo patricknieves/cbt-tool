@@ -36,7 +36,7 @@ def search_corresponding_transaction(currency, tx_hash, exchange_id):
                 input_value = 0
                 output_value = 0
                 for tx_input in transaction["inputs"]:
-                    if tx_input["value"] != 0 and "prev_out" in tx_input and "addr" in tx_input["prev_out"]:
+                    if "prev_out" in tx_input and tx_input["prev_out"]["value"] != 0 and "addr" in tx_input["prev_out"]:
                         input_value = input_value + tx_input["prev_out"]["value"] / 100000000
                 for tx_output in transaction["out"]:
                     if tx_output["value"] != 0 and "addr" in tx_output:
