@@ -74,15 +74,15 @@ def standardize(currency, json):
                          "block_nr": json["height"],
                          "inputs": [],
                          "outputs": []}
-            for input in transaction["inputs"]:
-                if input["value"] != 0 and "prev_out" in input and "addr" in input["prev_out"]:
-                    dict_item_input = {"amount": input["prev_out"]["value"] / 100000000,
-                                       "address": input["prev_out"]["addr"]}
+            for tx_input in transaction["inputs"]:
+                if tx_input["value"] != 0 and "prev_out" in tx_input and "addr" in tx_input["prev_out"]:
+                    dict_item_input = {"amount": tx_input["prev_out"]["value"] / 100000000,
+                                       "address": tx_input["prev_out"]["addr"]}
                     dict_item["inputs"].append(dict_item_input)
-            for output in transaction["out"]:
-                if output["value"] != 0 and "addr" in output:
-                    dict_item_output = {"amount": output["value"] / 100000000,
-                                        "address": output["addr"]}
+            for tx_output in transaction["out"]:
+                if tx_output["value"] != 0 and "addr" in tx_output:
+                    dict_item_output = {"amount": tx_output["value"] / 100000000,
+                                        "address": tx_output["addr"]}
                     dict_item["outputs"].append(dict_item_output)
             standardized_dict.append(dict_item)
 
@@ -98,10 +98,10 @@ def standardize(currency, json):
                              "outputs": []}
                 dict_item_input = {"amount": int(transaction["value"], 16) / 1E+18,
                                    "address": transaction["from"]}
-                dict_item["inputs"].append(dict_item_input)
+                dict_item["inputs"] = [dict_item_input]
                 dict_item_output = {"amount": int(transaction["value"], 16) / 1E+18,
                                     "address": transaction["to"]}
-                dict_item["outputs"].append(dict_item_output)
+                dict_item["outputs"] = [dict_item_output]
                 standardized_dict.append(dict_item)
 
         # for transaction in json:
@@ -123,15 +123,15 @@ def standardize(currency, json):
                          "fee": transaction["fee"],
                          "hash": transaction["txid"],
                          "block_nr": json["block_no"]}
-            for input in transaction["inputs"]:
-                if float(input["value"]) != 0:
-                    dict_item_input = {"amount": float(input["value"]),
-                                       "address": input["address"]}
+            for tx_input in transaction["inputs"]:
+                if float(tx_input["value"]) != 0:
+                    dict_item_input = {"amount": float(tx_input["value"]),
+                                       "address": tx_input["address"]}
                     dict_item["inputs"].append(dict_item_input)
-            for output in transaction["out"]:
-                if float(output["value"]) != 0:
-                    dict_item_output = {"amount": float(output["value"]),
-                                        "address": output["address"]}
+            for tx_output in transaction["out"]:
+                if float(tx_output["value"]) != 0:
+                    dict_item_output = {"amount": float(tx_output["value"]),
+                                        "address": tx_output["address"]}
                     dict_item["outputs"].append(dict_item_output)
             standardized_dict.append(dict_item)
 
