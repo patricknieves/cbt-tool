@@ -70,6 +70,23 @@ def create_table_scraper():
                 "dollarvalue_to float DEFAULT NULL,"
                 "PRIMARY KEY (id))")
 
+def create_table_shapeshift_addresses_btc():
+    cur.execute("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc ("
+                "id int(11) NOT NULL AUTO_INCREMENT,"
+                "address varchar(120) DEFAULT NULL,"
+                "PRIMARY KEY (id),"
+                "UNIQUE INDEX address_UNIQUE (address ASC))")
+
+def insert_shapeshift_address_btc(shapeshift_address):
+    try:
+        cur.execute(
+            "INSERT IGNORE INTO shapeshift_addr_btc (address) VALUES (%s)", shapeshift_address)
+        db.commit()
+    except:
+        print("Problem saving Shapeshift Address: "
+              "Address: " + str(shapeshift_address))
+        traceback.print_exc()
+        db.rollback()
 
 def insert_exchange(currency_from,
                     currency_to,
@@ -180,6 +197,17 @@ def insert_shapeshift_exchange(currency_from,
         traceback.print_exc()
         db.rollback()
 
+def get_all_shapeshift_addresses_btc():
+    standardized_array = []
+    try:
+        cur.execute("SELECT * FROM cross_block.shapeshift_addr_btc")
+        results = cur.fetchall()
+        for row in results:
+            standardized_array.append(row[1])
+    except:
+        print("Problem retrieving Shapeshift Addresses from DB")
+        traceback.print_exc()
+    return list(standardized_array)
 
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []

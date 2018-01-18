@@ -10,7 +10,7 @@ class Address_manager(object):
             if self.address_tracker_eth.is_shapeshift_related_as_deposit(exchange_transaction):
                 return True
         elif exchange_transaction["symbol"] == "BTC":
-            # TODO implement Address recognition for BTC
+            # TODO if BTC: for new_transaction in new_transactions: Address_tracker_btc.check_if_shapeshift_related(new_transaction)
             return True
         elif exchange_transaction["symbol"] == "LTC":
             # TODO implement Address recognition for LTC
@@ -22,7 +22,7 @@ class Address_manager(object):
             if self.address_tracker_eth.is_shapeshift_related_as_withdrawl(exchange_transaction):
                 return True
         elif exchange_transaction["symbol"] == "BTC":
-            # TODO implement Address recognition for BTC
+            # TODO if BTC: for new_transaction in new_transactions: Address_tracker_btc.check_if_shapeshift_related(new_transaction)
             return True
         elif exchange_transaction["symbol"] == "LTC":
             # TODO implement Address recognition for LTC
