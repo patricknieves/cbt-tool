@@ -74,13 +74,14 @@ def create_table_shapeshift_addresses_btc():
     cur.execute("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "address varchar(120) DEFAULT NULL,"
+                "classification varchar(120) DEFAULT NULL,"
                 "PRIMARY KEY (id),"
                 "UNIQUE INDEX address_UNIQUE (address ASC))")
 
-def insert_shapeshift_address_btc(shapeshift_address):
+def insert_shapeshift_address_btc(shapeshift_address, classification):
     try:
         cur.execute(
-            "INSERT IGNORE INTO shapeshift_addr_btc (address) VALUES (%s)", shapeshift_address)
+            "INSERT IGNORE INTO shapeshift_addr_btc (address, classification) VALUES (%s, %s)", (shapeshift_address, classification))
         db.commit()
     except:
         print("Problem saving Shapeshift Address: "

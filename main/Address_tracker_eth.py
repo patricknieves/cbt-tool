@@ -5,6 +5,8 @@ import time
 import traceback
 import sys
 
+import Settings
+import Currency_apis
 
 class Address_tracker_eth(object):
     def __init__(self, current_block_number):
@@ -12,11 +14,10 @@ class Address_tracker_eth(object):
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
         self.number_of_blocks = 500
         # Added number can/must be adapted
-        self.endblock_ETH = current_block_number + 1000
+        self.endblock_ETH = current_block_number + Settings.get_preparation_range("ETH")
         self.shapeshift_transactions = []
 
     def is_shapeshift_related_as_deposit(self, exchange_transaction):
-        self.load_new_transactions(exchange_transaction["blocktime"])
         for address_transaction in self.shapeshift_transactions:
             if exchange_transaction["blocktime"] < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
                 # Shapeshift sends deposits to main address after certain time (approx. 2 hours)
@@ -26,15 +27,32 @@ class Address_tracker_eth(object):
                 return False
 
     def is_shapeshift_related_as_withdrawl(self, exchange_transaction):
-        self.load_new_transactions(exchange_transaction["blocktime"])
         for address_transaction in reversed(self.shapeshift_transactions):
             if exchange_transaction["blocktime"] > datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
                 # Shapeshift sends money from main address to sub addresses (mostly > 400 ETH), which send withdrawls to customers
                 if exchange_transaction["inputs"][0]["address"] == str(address_transaction["to"]):
-                    exchange_transaction["is_exchange_withdrawl"] = True
                     return True
             else:
                 return False
+
+    def check_and_save_if_shapeshift_related(self, exchange_transaction):
+        self.load_new_transactions(exchange_transaction["blocktime"])
+        if self.is_shapeshift_related_as_deposit(exchange_transaction):
+            exchange_transaction["is_exchange_deposit"] = True
+            exchange_transaction["is_exchange_withdrawl"] = False
+        elif self.is_shapeshift_related_as_withdrawl(exchange_transaction):
+            exchange_transaction["is_exchange_deposit"] = False
+            exchange_transaction["is_exchange_withdrawl"] = True
+        return exchange_transaction
+
+    def get_block_by_number_only_shapeshift_txs(self, current_block_number):
+        new_transactions = Currency_apis.get_block_by_number("ETH", current_block_number)
+        block = []
+        for new_transaction in new_transactions:
+            transaction = self.check_and_save_if_shapeshift_related(new_transaction)
+            if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
+                block.append(transaction)
+        return block
 
     def load_new_transactions(self, current_exchange_time):
         # Load until last shapeshift transactions is 1 day older than the current transaction to check

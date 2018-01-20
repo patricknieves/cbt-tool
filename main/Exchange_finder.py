@@ -16,19 +16,25 @@ class Exchange_finder(object):
         self.currencies_array = currencies_array
         self.current_block_number_dict = self.get_current_block_numbers(currencies_array) if current_block_number_dict is None \
             else current_block_number_dict
+        # Start Address Manager with current block numbers
+        self.address_manager = Address_manager(current_block_number_dict)
         self.blocks_from = []
         self.transactions_to = []
         self.time_newest_block_dict = {}
         self.currency_data_dict = {}
 
     def find_exchanges(self):
+        # Perform Shapeshift Address recognition for BTC 700 Blocks before starting point
+        self.address_manager.prepare()
+
         for currency in self.currencies_array:
             # Get exchange rate data for every currency
             self.currency_data_dict[currency] = Currency_data(currency, "USD")
 
         # Load first blocks
         for currency in self.currencies_array:
-            self.load_block(currency)
+            # TODO Handle case that empty because of filtering
+            self.load_block_and_filter(currency)
         self.sort_blocks_and_transactions()
 
         # Set a starting time (earliest block time) and tracking time
@@ -36,15 +42,12 @@ class Exchange_finder(object):
         start_time = time.mktime((min(block_times)).timetuple())
         current_search_time = start_time
 
-        # Start Address Manager with current block numbers
-        address_manager = Address_manager(self.current_block_number_dict)
-
         while start_time - current_search_time < 3*60*60:
             # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
             current_search_time = current_search_time - 10*60
             for currency in self.currencies_array:
                 while currency not in self.time_newest_block_dict or self.time_newest_block_dict[currency] > datetime.datetime.utcfromtimestamp(current_search_time):
-                    self.load_block(currency)
+                    self.load_block_and_filter(currency)
             self.sort_blocks_and_transactions()
 
             # Search for Transactions between two currencies
@@ -59,9 +62,6 @@ class Exchange_finder(object):
                 else:
                     self.blocks_from.remove(block_from)
                     for transaction_from in block_from:
-                        # Skip(/remove) transaction_from if not exchange related
-                        if not(address_manager.is_exchange_deposit(transaction_from)):
-                            continue
 
                         for transaction_to in list(self.transactions_to):
                             if transaction_from["symbol"] != transaction_to["symbol"]:
@@ -70,10 +70,6 @@ class Exchange_finder(object):
                                 # transaction takes at least half min
                                 if exchange_time_diff < Settings.get_exchange_time_lower_bound(transaction_to["symbol"]):
                                     break
-                                # Skip and remove transaction_to if not exchange related
-                                if transaction_to["is_exchange_withdrawl"] != True and not(address_manager.is_exchange_withdrawl(transaction_to)):
-                                    self.transactions_to.remove(transaction_to)
-                                    continue
                                 # Searching for corresponding transaction not older than X min
                                 elif exchange_time_diff < Settings.get_exchange_time_upper_bound(transaction_to["symbol"]):
 
@@ -129,6 +125,20 @@ class Exchange_finder(object):
             self.blocks_from.append(new_transactions)
             self.transactions_to.extend(new_transactions)
             self.time_newest_block_dict[currency] = new_transactions[0]["blocktime"]
+        self.current_block_number_dict[currency] = self.current_block_number_dict[currency] - 1
+
+    def load_block_and_filter(self, currency):
+        new_transactions =  self.address_manager.get_block_by_number(currency, self.current_block_number_dict[currency])
+        if new_transactions:
+            self.time_newest_block_dict[currency] = new_transactions[0]["blocktime"]
+            transactions_from = []
+            for new_transaction in new_transactions:
+                if self.address_manager.is_exchange_deposit(new_transaction):
+                    transactions_from.append(new_transaction)
+                elif self.address_manager.is_exchange_withdrawl(new_transaction):
+                    self.transactions_to.append(new_transaction)
+            if transactions_from:
+                self.blocks_from.append(transactions_from)
         self.current_block_number_dict[currency] = self.current_block_number_dict[currency] - 1
 
     def get_current_block_numbers (self, currencies_array):

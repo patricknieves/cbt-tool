@@ -74,6 +74,7 @@ def standardize(currency, json):
                          "block_nr": json["height"],
                          "inputs": [],
                          "outputs": [],
+                         "is_exchange_deposit": None,
                          "is_exchange_withdrawl": None
                          }
             # Get inputs and outputs & calculate fee
@@ -106,6 +107,7 @@ def standardize(currency, json):
                              "hash": transaction["hash"], "block_nr": int(json["number"], 16),
                              "inputs": [],
                              "outputs": [],
+                             "is_exchange_deposit": None,
                              "is_exchange_withdrawl": None}
                 dict_item_input = {"amount": int(transaction["value"], 16) / 1E+18,
                                    "address": transaction["from"]}
@@ -134,6 +136,7 @@ def standardize(currency, json):
                          "fee": transaction["fee"],
                          "hash": transaction["txid"],
                          "block_nr": json["block_no"],
+                         "is_exchange_deposit": None,
                          "is_exchange_withdrawl": None}
             for tx_input in transaction["inputs"]:
                 if float(tx_input["value"]) != 0:

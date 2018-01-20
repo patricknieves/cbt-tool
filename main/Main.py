@@ -23,6 +23,7 @@ def main_X():
     exchange_finder = Exchange_finder(currencies_array, current_block_number_dict=current_block_number_dict)
     exchange_finder.find_exchanges()
 
+
 def main():
     Database_manager.initialize_db()
     Database_manager.create_table_shapeshift_addresses_btc()
