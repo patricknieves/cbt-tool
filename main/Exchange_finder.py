@@ -42,7 +42,7 @@ class Exchange_finder(object):
         start_time = time.mktime((min(block_times)).timetuple())
         current_search_time = start_time
 
-        while start_time - current_search_time < 3*60*60:
+        while start_time - current_search_time < 7*60*60:
             # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
             current_search_time = current_search_time - 10*60
             for currency in self.currencies_array:
@@ -72,8 +72,8 @@ class Exchange_finder(object):
                                     break
                                 # Searching for corresponding transaction not older than X min
                                 elif exchange_time_diff < Settings.get_exchange_time_upper_bound(transaction_to["symbol"]):
-
                                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
+                                    # TODO dollarvalue_from should be calculated before for-loop for transactions_to (can even be calculated before for-loop for transactions_from)
                                     dollarvalue_from = self.currency_data_dict[transaction_from["symbol"]].get_value(transaction_from["blocktime"])
                                     dollarvalue_to = self.currency_data_dict[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
                                     rate_cmc = dollarvalue_from/dollarvalue_to
@@ -128,7 +128,7 @@ class Exchange_finder(object):
         self.current_block_number_dict[currency] = self.current_block_number_dict[currency] - 1
 
     def load_block_and_filter(self, currency):
-        new_transactions =  self.address_manager.get_block_by_number(currency, self.current_block_number_dict[currency])
+        new_transactions = self.address_manager.get_block_by_number(currency, self.current_block_number_dict[currency])
         if new_transactions:
             self.time_newest_block_dict[currency] = new_transactions[0]["blocktime"]
             transactions_from = []

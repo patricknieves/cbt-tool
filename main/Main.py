@@ -4,7 +4,7 @@ import Currency_apis
 import time
 from Address_tracker_btc import Address_tracker_btc
 
-def main_X():
+def main():
     # Create MySQL Database and connect
     Database_manager.initialize_db()
     # Create MySQL Tables
@@ -19,12 +19,13 @@ def main_X():
     #currencies_array = ["BTC", "ETH", "LTC"]
     currencies_array = ["BTC", "ETH"]
     # Set static block numbers instead of current block numbers
-    current_block_number_dict = {"BTC": 504330, "ETH": 4912461}
+    # current_block_number_dict = {"BTC": 504330, "ETH": 4912461}
+    current_block_number_dict = {"BTC": 499026, "ETH": 4724187}
     exchange_finder = Exchange_finder(currencies_array, current_block_number_dict=current_block_number_dict)
     exchange_finder.find_exchanges()
 
 
-def main():
+def main_test():
     Database_manager.initialize_db()
     Database_manager.create_table_shapeshift_addresses_btc()
     set_shapeshift_main_addresses()

@@ -12,7 +12,7 @@ class Address_tracker_eth(object):
     def __init__(self, current_block_number):
         self.shapeshift_main_address_ETH = "0x70faa28A6B8d6829a4b1E649d26eC9a2a39ba413"
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
-        self.number_of_blocks = 500
+        self.number_of_blocks = 1000
         # Added number can/must be adapted
         self.endblock_ETH = current_block_number + Settings.get_preparation_range("ETH")
         self.shapeshift_transactions = []

@@ -43,7 +43,7 @@ def get_exchange_time_upper_bound(currency):
 
 def get_preparation_range(currency):
     if currency == "BTC":
-        return 700
+        return 506
     elif currency == "ETH":
         return 1000
     else:

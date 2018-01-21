@@ -12,6 +12,12 @@ def main():
     #get_shapeshift_exchanges(30*60)
     #find_exchange_data()
 
+def main_second_process():
+    setup_db()
+    while True:
+        find_exchange_data()
+
+
 
 # Use this method when Exchanges Table already filled but additional data still wasn't found
 def main_find_from_exact_block():
@@ -77,13 +83,13 @@ def get_shapeshift_exchanges_instant(runtime_in_sec):
 def find_exchange_data():
     btc_finder = Data_retriever("BTC")
     eth_finder = Data_retriever("ETH")
-    ltc_finder = Data_retriever("LTC")
+    #ltc_finder = Data_retriever("LTC")
     print ("Searching for BTC exchanges...")
     btc_finder.find_exchanges()
     print ("Searching for ETH exchanges...")
     eth_finder.find_exchanges()
-    print ("Searching for LTC exchanges...")
-    ltc_finder.find_exchanges()
+    #print ("Searching for LTC exchanges...")
+    #ltc_finder.find_exchanges()
     print ("Finished Search!")
 
 
