@@ -198,17 +198,18 @@ def insert_shapeshift_exchange(currency_from,
         traceback.print_exc()
         db.rollback()
 
-def get_all_shapeshift_addresses_btc():
-    standardized_array = []
+def get_all_shapeshift_middle_addresses_btc(classification):
+    standardized_set = set([])
     try:
-        cur.execute("SELECT * FROM cross_block.shapeshift_addr_btc")
+        cur.execute("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
         results = cur.fetchall()
         for row in results:
-            standardized_array.append(row[1])
+            standardized_set.add(row[1])
     except:
         print("Problem retrieving Shapeshift Addresses from DB")
         traceback.print_exc()
-    return list(standardized_array)
+    return standardized_set
+
 
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []

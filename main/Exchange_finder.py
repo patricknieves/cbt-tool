@@ -2,7 +2,7 @@ import Database_manager
 import Currency_apis
 import Shapeshift_api
 import datetime
-import time
+import calendar
 import Settings
 from Address_manager import Address_manager
 from Currency_data import Currency_data
@@ -25,7 +25,7 @@ class Exchange_finder(object):
 
     def find_exchanges(self):
         # Perform Shapeshift Address recognition for BTC 700 Blocks before starting point
-        self.address_manager.prepare()
+        #self.address_manager.prepare()
 
         for currency in self.currencies_array:
             # Get exchange rate data for every currency
@@ -39,7 +39,7 @@ class Exchange_finder(object):
 
         # Set a starting time (earliest block time) and tracking time
         block_times = [x[0]["blocktime"] for x in self.blocks_from]
-        start_time = time.mktime((min(block_times)).timetuple())
+        start_time = calendar.timegm((min(block_times)).timetuple())
         current_search_time = start_time
 
         while start_time - current_search_time < 7*60*60:
@@ -61,6 +61,9 @@ class Exchange_finder(object):
                     continue
                 else:
                     self.blocks_from.remove(block_from)
+                    # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
+                    dollarvalue_from = self.currency_data_dict[block_from[0]["symbol"]].get_value(block_from[0]["blocktime"])
+
                     for transaction_from in block_from:
 
                         for transaction_to in list(self.transactions_to):
@@ -73,8 +76,6 @@ class Exchange_finder(object):
                                 # Searching for corresponding transaction not older than X min
                                 elif exchange_time_diff < Settings.get_exchange_time_upper_bound(transaction_to["symbol"]):
                                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
-                                    # TODO dollarvalue_from should be calculated before for-loop for transactions_to (can even be calculated before for-loop for transactions_from)
-                                    dollarvalue_from = self.currency_data_dict[transaction_from["symbol"]].get_value(transaction_from["blocktime"])
                                     dollarvalue_to = self.currency_data_dict[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
                                     rate_cmc = dollarvalue_from/dollarvalue_to
                                     for output_transaction_from in transaction_from["outputs"]:

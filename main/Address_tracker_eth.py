@@ -10,9 +10,9 @@ import Currency_apis
 
 class Address_tracker_eth(object):
     def __init__(self, current_block_number):
-        self.shapeshift_main_address_ETH = "0x70faa28A6B8d6829a4b1E649d26eC9a2a39ba413"
+        self.shapeshift_main_address_ETH = "0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413"
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
-        self.number_of_blocks = 1000
+        self.number_of_blocks = 2000
         # Added number can/must be adapted
         self.endblock_ETH = current_block_number + Settings.get_preparation_range("ETH")
         self.shapeshift_transactions = []
@@ -21,7 +21,8 @@ class Address_tracker_eth(object):
         for address_transaction in self.shapeshift_transactions:
             if exchange_transaction["blocktime"] < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
                 # Shapeshift sends deposits to main address after certain time (approx. 2 hours)
-                if exchange_transaction["outputs"][0]["address"] == str(address_transaction["from"]):
+                if exchange_transaction["outputs"][0]["address"] != unicode(self.shapeshift_main_address_ETH) and \
+                                exchange_transaction["outputs"][0]["address"] == str(address_transaction["from"]):
                     return True
             else:
                 return False
@@ -30,7 +31,8 @@ class Address_tracker_eth(object):
         for address_transaction in reversed(self.shapeshift_transactions):
             if exchange_transaction["blocktime"] > datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
                 # Shapeshift sends money from main address to sub addresses (mostly > 400 ETH), which send withdrawls to customers
-                if exchange_transaction["inputs"][0]["address"] == str(address_transaction["to"]):
+                if exchange_transaction["inputs"][0]["address"] != unicode(self.shapeshift_main_address_ETH) and \
+                                exchange_transaction["inputs"][0]["address"] == str(address_transaction["to"]):
                     return True
             else:
                 return False

@@ -1,5 +1,5 @@
 import Tor
-import time
+import calendar
 from crycompare import *
 
 
@@ -12,7 +12,7 @@ class Currency_data(object):
         self.currency_to = currency_to
 
     def get_value(self, transaction_time):
-        transaction_time = time.mktime(transaction_time.timetuple())
+        transaction_time = calendar.timegm(transaction_time.timetuple())
         if not self.history:
             Tor.change_ip()
             self.history = self.h.histoHour(self.currency_from, self.currency_to, toTs=transaction_time, limit=2000)["Data"][::-1]

@@ -1,6 +1,6 @@
 def get_rate_lower_bound(currency):
     if currency == "BTC":
-        return 0.70
+        return 0.55
     elif currency == "ETH":
         return 0.90
     elif currency == "LTC":

@@ -12,8 +12,10 @@ class Address_tracker_btc(object):
                                      "1BvTQTP5PJVCEz7dCU2YxgMskMxxikSruM",
                                      "1jhbBbDRdezEZ5tSsHZwuUg85Hhf4rWuz",
                                      "3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B"]
-        self. shapeshift_middle_addresses = set(["1B6MUdDVNZU5tEWoLLcqVVk6GU2GgUiHq6"])
-        self. shapeshift_single_addresses = set([])
+        #self. shapeshift_middle_addresses = set([])
+        #self. shapeshift_single_addresses = set([])
+        self. shapeshift_middle_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("middle")
+        self. shapeshift_single_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("single")
         self.shapeshift_stop_addresses = ["1NSc6zAdG2NGbjPLQwAjAuqjHSoq5KECT7"]
 
     def check_and_save_if_shapeshift_related(self, exchange_transaction):
@@ -22,6 +24,9 @@ class Address_tracker_btc(object):
                         or tx_output["address"] in self.shapeshift_middle_addresses \
                         or tx_output["address"] in self.shapeshift_single_addresses:
                     if tx_output["address"][0] != "3":
+                        # Delete Shapeshift Address from Outputs (and leave only User Address)
+                        exchange_transaction["outputs"].remove(tx_output)
+
                         exchange_transaction["is_exchange_deposit"] = False
                         exchange_transaction["is_exchange_withdrawl"] = True
 
@@ -34,6 +39,9 @@ class Address_tracker_btc(object):
                                 if not(tx_input["address"] in self.shapeshift_stop_addresses):
                                     self.shapeshift_single_addresses.add(tx_input["address"])
                     else:
+                        # Leave only Shapeshift Address in Outputs
+                        exchange_transaction["outputs"] = [tx_output]
+
                         exchange_transaction["is_exchange_deposit"] = True
                         exchange_transaction["is_exchange_withdrawl"] = False
 
