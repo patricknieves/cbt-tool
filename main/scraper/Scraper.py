@@ -1,6 +1,8 @@
 import sys
+print sys.path
 import os.path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append('..')
+#sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from main import Database_manager
 import time
 import Finder
