@@ -214,7 +214,7 @@ def get_all_shapeshift_middle_addresses_btc(classification):
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []
     try:
-        cur.execute("SELECT * FROM cross_block.scraper WHERE currency_from = " + currency + " AND amount_to IS NULL")
+        cur.execute("SELECT * FROM cross_block.scraper WHERE amount_to IS NULL AND currency_from = %s", (currency,))
         results = cur.fetchall()
         for row in results:
             dict_item = {"id": row[0],
