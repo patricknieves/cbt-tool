@@ -46,7 +46,7 @@ def create_table_exchanges():
 
 
 def create_table_scraper():
-    cur.execute("CREATE TABLE IF NOT EXISTS scraper ("
+    cur.execute("CREATE TABLE IF NOT EXISTS scraper_second ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "currency_from varchar(45) DEFAULT NULL,"
                 "currency_to varchar(45) DEFAULT NULL,"
@@ -174,7 +174,7 @@ def insert_shapeshift_exchange(currency_from,
                                ):
     try:
         cur.execute(
-            "INSERT INTO scraper ("
+            "INSERT INTO scraper_second ("
             "currency_from, "
             "currency_to, "
             "amount_from, "
@@ -214,7 +214,7 @@ def get_all_shapeshift_middle_addresses_btc(classification):
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []
     try:
-        cur.execute("SELECT * FROM cross_block.scraper WHERE amount_to IS NULL AND currency_from = %s", (currency,))
+        cur.execute("SELECT * FROM cross_block.scraper_second WHERE amount_to IS NULL AND currency_from = %s", (currency,))
         results = cur.fetchall()
         for row in results:
             dict_item = {"id": row[0],
@@ -242,7 +242,7 @@ def update_shapeshift_exchange(amount_to,
                                ):
     try:
         cur.execute(
-            "UPDATE scraper SET  "
+            "UPDATE scraper_second SET  "
             "amount_to = %s, "
             "fee_from = %s, "
             "address_from = %s, "
@@ -274,7 +274,7 @@ def update_shapeshift_exchange(amount_to,
 def update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, block_nr_to, id):
     try:
         cur.execute(
-            "UPDATE scraper SET  "
+            "UPDATE scraper_second SET  "
             "time_to = %s, "
             "time_block_to = %s, "
             "fee_to = %s, "
@@ -300,7 +300,7 @@ def delete_all_data():
 
 # Delete all found shapeshift exchanges in DB
 def delete_all_scraper_data():
-    cur.execute("TRUNCATE TABLE scraper")
+    cur.execute("TRUNCATE TABLE scraper_second")
 
 
 def closeConnection():
