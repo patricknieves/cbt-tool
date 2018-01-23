@@ -81,8 +81,8 @@ class Exchange_finder(object):
                                     for output_transaction_from in transaction_from["outputs"]:
                                         for output_transaction_to in transaction_to["outputs"]:
                                             # Compare Values with Rates
-                                            expected_output = output_transaction_from["amount"] * rate_cmc
-                                            # TODO actually transaction_to["amount"] + transaction_to["fee"] (+ transaction_to["exchange_fee"]) - Problem API doesn't return (correct) fees (ETH)
+                                            # The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
+                                            expected_output = (output_transaction_from["amount"] * rate_cmc) - Settings.get_exchanger_fee(transaction_to["symbol"]) # - transaction_to["fee"]
                                             if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < output_transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
                                                 exchanger = "Shapeshift"
 

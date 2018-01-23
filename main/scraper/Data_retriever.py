@@ -1,5 +1,5 @@
 import Corresponding_tx
-from main import Currency_apis, Database_manager, Shapeshift_api
+from main import Currency_apis, Database_manager, Shapeshift_api, Settings
 
 # TODO change all API Requests with full node Requests
 
@@ -7,21 +7,26 @@ class Data_retriever(object):
 
     def __init__(self, currency, last_block_number=None, exchanges=None):
         self.currency = currency
-        self.exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency) if exchanges is None \
-            else exchanges
-        self.current_block_number = Currency_apis.get_last_block_number(currency) if last_block_number is None \
-            else last_block_number
-        print self.current_block_number
+        self.exchanges = [] if exchanges is None else exchanges
+        self.current_block_number = None if last_block_number is None else last_block_number
+        self.last_block_checked = None
+
+    def prepare(self):
+        self.exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency)
+        self.current_block_number = Currency_apis.get_last_block_number(self.currency) - Settings.get_scraper_offset_last_block(self.currency)
+
 
     def find_exchanges(self):
-        while self.exchanges:
+        self.last_block_checked = self.current_block_number - Settings.get_scraper_offset_last_block(self.currency)
+        while self.exchanges and (not self.last_block_checked or (self.current_block_number > self.last_block_checked)):
+            print("Getting Block " + str(self.current_block_number) + " for " + self.currency)
             transactions = Currency_apis.get_block_by_number(self.currency, self.current_block_number)
             for transaction in transactions:
 
                 for exchange in list(self.exchanges):
                     block_time_diff = (exchange["time_exchange"] - transaction["blocktime"]).total_seconds()
                     tx_time_diff = (exchange["time_exchange"] - transaction["time"]).total_seconds()
-                    if tx_time_diff < -5*60:
+                    if tx_time_diff < -10*60:
                         break
                     elif tx_time_diff < 6*60:
                         # Note: float rounds numbers here. str used because float comparation in python not always working.
@@ -31,8 +36,8 @@ class Data_retriever(object):
                                 exchange_details = Shapeshift_api.get_exchange(output["address"])
                                 if exchange_details["status"] == "complete" and \
                                                 exchange_details["outgoingType"] == exchange["currency_to"]:
-                                    if not transaction["fee"]:
-                                        transaction["fee"] = Currency_apis.get_fee_BTC(transaction["hash"])
+                                    print("Found Exchange!")
+
                                     Database_manager.update_shapeshift_exchange(exchange_details["outgoingCoin"],
                                                                                 transaction["fee"],
                                                                                 exchange_details["address"],
@@ -44,11 +49,12 @@ class Data_retriever(object):
                                                                                 self.current_block_number,
                                                                                 exchange["id"]
                                                                                 )
+
                                     Corresponding_tx.search_corresponding_transaction(exchange_details["outgoingType"],
                                                                                       exchange_details["transaction"],
                                                                                       exchange["id"])
                                     self.exchanges.remove(exchange)
                                     break
-                    elif block_time_diff >= 5*60:
+                    elif block_time_diff >= 10*60:
                         self.exchanges.remove(exchange)
             self.current_block_number = self.current_block_number - 1

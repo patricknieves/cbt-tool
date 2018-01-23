@@ -2,7 +2,7 @@ def get_rate_lower_bound(currency):
     if currency == "BTC":
         return 0.55
     elif currency == "ETH":
-        return 0.90
+        return 0.80
     elif currency == "LTC":
         return 0.90
     else:
@@ -46,5 +46,29 @@ def get_preparation_range(currency):
         return 506
     elif currency == "ETH":
         return 1000
+    else:
+        return
+
+def get_exchanger_fee(currency):
+    if currency == "BTC":
+        return 0.00175
+    elif currency == "ETH":
+        return 0.01
+    else:
+        return
+
+def get_scraper_offset(currency):
+    if currency == "BTC":
+        return 0
+    elif currency == "ETH":
+        return 15
+    else:
+        return
+
+def get_scraper_offset_last_block(currency):
+    if currency == "BTC":
+        return 6
+    elif currency == "ETH":
+        return 40
     else:
         return
