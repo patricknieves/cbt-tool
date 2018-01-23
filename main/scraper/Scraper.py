@@ -1,8 +1,11 @@
+import sys
+import os.path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from main import Database_manager
 import time
 import Finder
 from threading import Thread
 from Shapeshift import Shapeshift
-from main import Database_manager
 
 
 def main():
