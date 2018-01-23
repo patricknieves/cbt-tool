@@ -15,9 +15,8 @@ class Data_retriever(object):
         self.exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency)
         self.current_block_number = Currency_apis.get_last_block_number(self.currency) - Settings.get_scraper_offset_last_block(self.currency)
 
-
     def find_exchanges(self):
-        self.last_block_checked = self.current_block_number - Settings.get_scraper_offset_last_block(self.currency)
+        start_block = self.current_block_number
         while self.exchanges and (not self.last_block_checked or (self.current_block_number > self.last_block_checked)):
             print("Getting Block " + str(self.current_block_number) + " for " + self.currency)
             transactions = Currency_apis.get_block_by_number(self.currency, self.current_block_number)
@@ -58,3 +57,4 @@ class Data_retriever(object):
                     elif block_time_diff >= 10*60:
                         self.exchanges.remove(exchange)
             self.current_block_number = self.current_block_number - 1
+        self.last_block_checked = start_block - Settings.get_scraper_offset_last_block(self.currency)
