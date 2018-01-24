@@ -59,7 +59,7 @@ def get_exchanger_fee(currency):
 
 def get_scraper_offset(currency):
     if currency == "BTC":
-        return 0
+        return 2
     elif currency == "ETH":
         return 15
     else:

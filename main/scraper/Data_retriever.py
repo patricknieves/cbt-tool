@@ -13,7 +13,7 @@ class Data_retriever(object):
 
     def prepare(self):
         self.exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency)
-        self.current_block_number = Currency_apis.get_last_block_number(self.currency) - Settings.get_scraper_offset_last_block(self.currency)
+        self.current_block_number = Currency_apis.get_last_block_number(self.currency) - Settings.get_scraper_offset(self.currency)
 
     def find_exchanges(self):
         start_block = self.current_block_number
