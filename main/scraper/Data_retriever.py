@@ -17,8 +17,8 @@ class Data_retriever(object):
 
     def find_exchanges(self):
         start_block = self.current_block_number
+        print("Starting with Block " + str(self.current_block_number) + " for " + self.currency)
         while self.exchanges and (not self.last_block_checked or (self.current_block_number > self.last_block_checked)):
-            print("Getting Block " + str(self.current_block_number) + " for " + self.currency)
             transactions = Currency_apis.get_block_by_number(self.currency, self.current_block_number)
             for transaction in transactions:
 
@@ -35,7 +35,7 @@ class Data_retriever(object):
                                 exchange_details = Shapeshift_api.get_exchange(output["address"])
                                 if exchange_details["status"] == "complete" and \
                                                 exchange_details["outgoingType"] == exchange["currency_to"]:
-                                    print("Found Exchange!")
+                                    #print("Found Exchange!")
 
                                     Database_manager.update_shapeshift_exchange(exchange_details["outgoingCoin"],
                                                                                 transaction["fee"],
@@ -57,4 +57,5 @@ class Data_retriever(object):
                     elif block_time_diff >= 10*60:
                         self.exchanges.remove(exchange)
             self.current_block_number = self.current_block_number - 1
+        print("Ending with Block " + str(self.current_block_number) + " for " + self.currency)
         self.last_block_checked = start_block - Settings.get_scraper_offset_last_block(self.currency)
