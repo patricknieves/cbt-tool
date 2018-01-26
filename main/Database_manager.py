@@ -3,6 +3,33 @@ import atexit
 import traceback
 
 
+class DB:
+    conn = None
+
+    def connect(self):
+        self.conn = MySQLdb.connect(host="localhost", user="root", passwd="Sebis2017", db="cross_block")
+
+    def query(self, sql, parameters=None):
+        try:
+            cursor = self.conn.cursor()
+            if parameters is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, parameters)
+        except (AttributeError, MySQLdb.OperationalError):
+            self.connect()
+            cursor = self.conn.cursor()
+            cursor.execute(sql, parameters)
+        return cursor
+
+    def commit(self):
+        try:
+            self.conn.commit()
+        except (AttributeError, MySQLdb.OperationalError):
+            self.connect()
+            self.conn.commit()
+
+
 def create_database():
     db = MySQLdb.connect(host="localhost", user="root", passwd="Sebis2017")
     cur = db.cursor()
@@ -12,15 +39,17 @@ def create_database():
 
 def initialize_db():
     create_database()
-    global db
-    db = MySQLdb.connect(host="localhost", user="root", passwd="Sebis2017", db="cross_block")
-    global cur
-    cur = db.cursor()
+    global dbClass
+    dbClass = DB()
+    #global db
+    #db = MySQLdb.connect(host="localhost", user="root", passwd="Sebis2017", db="cross_block")
+    #global cur
+    #cur = db.cursor()
     atexit.register(closeConnection)
 
 
 def create_table_exchanges():
-    cur.execute("CREATE TABLE IF NOT EXISTS exchanges ("
+    dbClass.query("CREATE TABLE IF NOT EXISTS exchanges ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "currency_from varchar(45) DEFAULT NULL,"
                 "currency_to varchar(45) DEFAULT NULL,"
@@ -46,7 +75,7 @@ def create_table_exchanges():
 
 
 def create_table_scraper():
-    cur.execute("CREATE TABLE IF NOT EXISTS scraper_second ("
+    dbClass.query("CREATE TABLE IF NOT EXISTS scraper_second ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "currency_from varchar(45) DEFAULT NULL,"
                 "currency_to varchar(45) DEFAULT NULL,"
@@ -71,7 +100,7 @@ def create_table_scraper():
                 "PRIMARY KEY (id))")
 
 def create_table_shapeshift_addresses_btc():
-    cur.execute("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc ("
+    dbClass.query("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "address varchar(120) DEFAULT NULL,"
                 "classification varchar(120) DEFAULT NULL,"
@@ -80,14 +109,13 @@ def create_table_shapeshift_addresses_btc():
 
 def insert_shapeshift_address_btc(shapeshift_address, classification):
     try:
-        cur.execute(
-            "INSERT IGNORE INTO shapeshift_addr_btc (address, classification) VALUES (%s, %s)", (shapeshift_address, classification))
-        db.commit()
+        dbClass.query("INSERT IGNORE INTO shapeshift_addr_btc (address, classification) VALUES (%s, %s)", (shapeshift_address, classification))
+        dbClass.commit()
     except:
         print("Problem saving Shapeshift Address: "
               "Address: " + str(shapeshift_address))
         traceback.print_exc()
-        db.rollback()
+        #db.rollback()
 
 def insert_exchange(currency_from,
                     currency_to,
@@ -111,7 +139,7 @@ def insert_exchange(currency_from,
                     exchanger
                     ):
     try:
-        cur.execute(
+        dbClass.query(
             "INSERT INTO exchanges ("
             "currency_from, "
             "currency_to,"
@@ -156,12 +184,12 @@ def insert_exchange(currency_from,
              dollarvalue_to,
              exchanger
              ))
-        db.commit()
+        dbClass.commit()
     except:
         print("Problem saving Exchange: "
               "hash_from: " + str(hash_from) + " hash_to: " + str(hash_to))
         traceback.print_exc()
-        db.rollback()
+        #db.rollback()
 
 
 def insert_shapeshift_exchange(currency_from,
@@ -173,7 +201,7 @@ def insert_shapeshift_exchange(currency_from,
                                dollarvalue_to
                                ):
     try:
-        cur.execute(
+        response = dbClass.query(
             "INSERT INTO scraper_second ("
             "currency_from, "
             "currency_to, "
@@ -191,18 +219,18 @@ def insert_shapeshift_exchange(currency_from,
              dollarvalue_from,
              dollarvalue_to
              ))
-        db.commit()
-        return cur.lastrowid
+        dbClass.commit()
+        return response.lastrowid
     except:
         print("Problem saving Transaction")
         traceback.print_exc()
-        db.rollback()
+        #db.rollback()
 
 def get_all_shapeshift_middle_addresses_btc(classification):
     standardized_set = set([])
     try:
-        cur.execute("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
-        results = cur.fetchall()
+        response = dbClass.query("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
+        results = response.fetchall()
         for row in results:
             standardized_set.add(row[1])
     except:
@@ -214,8 +242,8 @@ def get_all_shapeshift_middle_addresses_btc(classification):
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []
     try:
-        cur.execute("SELECT * FROM cross_block.scraper_second WHERE amount_to IS NULL AND currency_from = %s", (currency,))
-        results = cur.fetchall()
+        response = dbClass.query("SELECT * FROM cross_block.scraper_second WHERE amount_to IS NULL AND currency_from = %s", (currency,))
+        results = response.fetchall()
         for row in results:
             dict_item = {"id": row[0],
                          "currency_from": row[1],
@@ -241,7 +269,7 @@ def update_shapeshift_exchange(amount_to,
                                id
                                ):
     try:
-        cur.execute(
+        dbClass.query(
             "UPDATE scraper_second SET  "
             "amount_to = %s, "
             "fee_from = %s, "
@@ -264,16 +292,16 @@ def update_shapeshift_exchange(amount_to,
              block_nr_from,
              id
              ))
-        db.commit()
+        dbClass.commit()
     except:
         print("Problem updating found Transaction with id: " + str(id))
         traceback.print_exc()
-        db.rollback()
+        #db.rollback()
 
 
 def update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, block_nr_to, id):
     try:
-        cur.execute(
+        dbClass.query(
             "UPDATE scraper_second SET  "
             "time_to = %s, "
             "time_block_to = %s, "
@@ -286,23 +314,23 @@ def update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, 
              block_nr_to,
              id
              ))
-        db.commit()
+        dbClass.commit()
     except:
         print("Problem updating found Transaction with id: " + str(id))
         traceback.print_exc()
-        db.rollback()
+        #db.rollback()
 
 
 # Delete all found exchanges in DB
 def delete_all_data():
-    cur.execute("TRUNCATE TABLE exchanges")
+    dbClass.query("TRUNCATE TABLE exchanges")
 
 
 # Delete all found shapeshift exchanges in DB
 def delete_all_scraper_data():
-    cur.execute("TRUNCATE TABLE scraper_second")
+    dbClass.query("TRUNCATE TABLE scraper_second")
 
 
 def closeConnection():
     print "Program stopped!"
-    db.close()
+    #db.close()
