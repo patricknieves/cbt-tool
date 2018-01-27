@@ -12,7 +12,9 @@ class Shapeshift_fee(object):
         current_time = time.time()
         # Update data every 30 min
         if (current_time - self.last_update_time) > 30*60:
-            self.shapeshift_fee_data = Shapeshift_api.get_fees_shapeshift()
+            fees = Shapeshift_api.get_fees_shapeshift()
+            if fees:
+                self.shapeshift_fee_data = fees
             self.last_update_time = current_time
         for exchange in self.shapeshift_fee_data:
             currency_shapeshift = exchange["pair"].split('_')[1]

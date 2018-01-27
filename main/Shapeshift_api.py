@@ -20,7 +20,12 @@ def get_exchange(address_from):
             return exchange_details
     else:
         traceback.print_exc()
-        sys.exit("Couldn't get transaction data from Shapeshift: " + address_from)
+        if address_from:
+            print("Couldn't get transaction data from Shapeshift: " + address_from)
+        else:
+            print("Couldn't get transaction data from Shapeshift, no output address")
+        return None
+        #sys.exit("Couldn't get transaction data from Shapeshift: " + address_from)
 
 
 def get_exchanger_name(address_from, address_to):
@@ -54,7 +59,9 @@ def get_fees_shapeshift():
             return fees
     else:
         traceback.print_exc()
-        sys.exit("Couldn't get fees from Shapeshift")
+        print("Couldn't get fees from Shapeshift")
+        return None
+        #sys.exit("Couldn't get fees from Shapeshift")
 
 
 def get_exchanges_shapeshift():
@@ -70,4 +77,6 @@ def get_exchanges_shapeshift():
             return exchanges
     else:
         traceback.print_exc()
-        sys.exit("Couldn't get exchanges from Shapeshift")
+        print ("Couldn't get exchanges from Shapeshift")
+        return None
+        # sys.exit("Couldn't get exchanges from Shapeshift")

@@ -17,6 +17,7 @@ class DB:
             else:
                 cursor.execute(sql, parameters)
         except (AttributeError, MySQLdb.OperationalError):
+            print("RECONNECTING TO DB")
             self.connect()
             cursor = self.conn.cursor()
             cursor.execute(sql, parameters)
@@ -26,6 +27,7 @@ class DB:
         try:
             self.conn.commit()
         except (AttributeError, MySQLdb.OperationalError):
+            print("RECONNECTING TO DB")
             self.connect()
             self.conn.commit()
 
