@@ -66,7 +66,8 @@ def search_corresponding_transaction(currency, tx_hash, exchange_id):
             break
     else:
         traceback.print_exc()
-        sys.exit("Couldn't get the corresponding Transaction for " + str(currency))
+        print("Couldn't get the corresponding Transaction for " + str(currency))
+        #sys.exit("Couldn't get the corresponding Transaction for " + str(currency))
         # Replace with this to do double search
         #search_corresponding_transaction2(currency, tx_hash, exchange_id)
 
