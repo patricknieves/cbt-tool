@@ -27,11 +27,19 @@ def search_corresponding_transaction(currency, tx_hash, exchange_id):
                 #block_nr_to = transaction["locktime"] if transaction["block_no"] is None else transaction["block_no"]
 
                 transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
-                while not("block_height" in transaction):
-                    print("Block not confirmed yet. Waiting 10 min")
-                    print("Tx: " + str(tx_hash))
-                    time.sleep(10*60)
-                    transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
+
+                for tries in range(6):
+                    if not("block_height" in transaction):
+                        print("Block not confirmed yet. Waiting 10 min")
+                        print("Tx: " + str(tx_hash))
+                        time.sleep(10*60)
+                        transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
+                    else:
+                        break
+
+                if not("block_height" in transaction):
+                    print("Block not confirmed in 1 hour. Couldn't get the corresponding Transaction for  " + str(tx_hash))
+                    return
 
                 block_nr_to = int(transaction["block_height"])
                 time_to = datetime.datetime.utcfromtimestamp(transaction["time"]).strftime('%Y-%m-%d %H:%M:%S')
