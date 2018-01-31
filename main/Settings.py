@@ -2,7 +2,7 @@ def get_rate_lower_bound(currency):
     if currency == "BTC":
         return 0.55
     elif currency == "ETH":
-        return 0.80
+        return 0.60
     elif currency == "LTC":
         return 0.90
     else:
@@ -11,13 +11,13 @@ def get_rate_lower_bound(currency):
 
 def get_rate_upper_bound(currency):
     if currency == "BTC":
-        return 1.02
+        return 1.3
     elif currency == "ETH":
-        return 1.02
+        return 1.3
     elif currency == "LTC":
-        return 1.02
+        return 1.2
     else:
-        return 1.02
+        return 1.2
 
 
 def get_exchange_time_lower_bound(currency):
@@ -33,9 +33,9 @@ def get_exchange_time_lower_bound(currency):
 
 def get_exchange_time_upper_bound(currency):
     if currency == "BTC":
-        return 5*60
+        return 10*60
     elif currency == "ETH":
-        return 5*60
+        return 10*60
     elif currency == "LTC":
         return 13*60
     else:

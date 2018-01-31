@@ -42,7 +42,7 @@ class Exchange_finder(object):
         start_time = calendar.timegm((min(block_times)).timetuple())
         current_search_time = start_time
 
-        while start_time - current_search_time < 7*60*60:
+        while start_time - current_search_time < 12*60*60:
             # Check if Array long enough. If not load more blocks until time difference of 10 min is reached
             current_search_time = current_search_time - 10*60
             for currency in self.currencies_array:

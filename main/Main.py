@@ -2,9 +2,53 @@ from Exchange_finder import Exchange_finder
 import Database_manager
 import Currency_apis
 import time
+import os
 from Address_tracker_btc import Address_tracker_btc
 
+from pycoin.blockchain.BlockChain import BlockChain
+from pycoin.block import Block
+from main.bitcoin_disk import Blockfiles
+import bitcoin_disk
+
 def main():
+    b = BlockChain()
+    print(str(b.last_block_hash()))
+    #path_BTC = os.path.join = ("E:", "Masterarbeit", "btc_node")
+    bf = Blockfiles(base_dir="E:\\Masterarbeit\\btc_node")
+    print(bf._path_for_file_index())
+    block = Block.parse_as_header(bf)
+    #bitcoin_disk.blockheader_for_offset_info((0, 0), base_dir="E:\\Masterarbeit\\btc_node")
+    for block in bitcoin_disk.locked_blocks_iterator(start_info=(0, 0), base_dir="E:\\Masterarbeit\\btc_node"):
+        print("Block")
+        print(block.version)
+        print(block.previous_block_hash)
+        print(block.merkle_root)
+        print(block.timestamp)
+        print(block.difficulty)
+        print(block.nonce)
+        for tx in block.txs:
+            #mytx = Tx(tx)
+            #print(mytx.txs_in)
+            print("Tx")
+            print(tx.version)
+            print(tx.lock_time)
+            print(tx.unspents)
+            for tx_in in tx.txs_in:
+                print("Input")
+                #print(str(tx_in.address))
+                print(str(tx_in.previous_hash))
+                print(str(tx_in.previous_index))
+                print(str(tx_in.script))
+                print(str(tx_in.sequence))
+                print(str(tx_in.witness))
+            for tx_out in tx.txs_out:
+                print("Output")
+                print(str(tx_out.coin_value))
+                print(str(tx_out.script))
+
+
+def mainX():
+    print ("starting time: " + str(time.time()))
     # Create MySQL Database and connect
     Database_manager.initialize_db()
     # Create MySQL Tables
@@ -23,7 +67,7 @@ def main():
     current_block_number_dict = {"BTC": 499026, "ETH": 4724187}
     exchange_finder = Exchange_finder(currencies_array, current_block_number_dict=current_block_number_dict)
     exchange_finder.find_exchanges()
-
+    print("Ending time: " + str(time.time()))
 
 def main_test():
     Database_manager.initialize_db()
