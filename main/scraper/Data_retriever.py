@@ -16,9 +16,15 @@ class Data_retriever(object):
         self.current_block_number = Currency_apis.get_last_block_number(self.currency) - Settings.get_scraper_offset(self.currency)
 
     def find_exchanges(self):
+
         start_block = self.current_block_number
-        print("Starting with Block " + str(self.current_block_number) + " for " + self.currency)
-        while self.exchanges and (not self.last_block_checked or (self.current_block_number > self.last_block_checked)):
+
+        if self.last_block_checked == None:
+            self.last_block_checked = start_block - Settings.get_scraper_offset_for_first_iteration(self.currency)
+
+        print("Starting with Block" + str(self.current_block_number) + "for" + self.currency)
+
+        while self.exchanges and (self.current_block_number > self.last_block_checked):
             transactions = Currency_apis.get_block_by_number(self.currency, self.current_block_number)
             for transaction in transactions:
 

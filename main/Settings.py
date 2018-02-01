@@ -72,3 +72,11 @@ def get_scraper_offset_last_block(currency):
         return 40
     else:
         return
+
+def get_scraper_offset_for_first_iteration(currency):
+    if currency == "BTC":
+        return 30
+    elif currency == "ETH":
+        return 400
+    else:
+        return
