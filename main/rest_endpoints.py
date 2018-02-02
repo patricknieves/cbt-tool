@@ -33,19 +33,34 @@ class Exchange_hash_to(Resource):
 
 class Exchange_input_from(Resource):
     def get(self, input_from):
-        #TODO get txs for address from Blockchain.info/Etherscan
-        response = Currency_apis.get_transactions_for_address(input_from)
+
+        if input_from[0] + input_from[1] == "0x":
+            currency = "ETH"
+        else:
+            currency = "BTC"
+
+        response = Currency_apis.get_transactions_for_address(currency, input_from)
         result = []
-        for tx in response:
-            found_exchanges = query_db("SELECT * FROM cross_block.exchanges WHERE hash_from = %s", (tx["hash"],))
-            result.extend(found_exchanges)
-        return json.dumps(result)
+
+        if response:
+            for tx in response:
+                found_exchanges = query_db("SELECT * FROM cross_block.exchanges WHERE hash_from = %s", (tx["hash"],))
+                result.extend(found_exchanges)
+            return json.dumps(result)
+
+
 
 class Exchange_input_to(Resource):
     def get(self, input_to):
-        #TODO get txs for address from Blockchain.info/Etherscan
-        response = Currency_apis.get_transactions_for_address(input_to)
+
+        if input_to[0] + input_to[1] == "0x":
+            currency = "ETH"
+        else:
+            currency = "BTC"
+
+        response = Currency_apis.get_transactions_for_address(currency, input_to)
         result = []
+
         for tx in response:
             found_exchanges = query_db("SELECT * FROM cross_block.exchanges WHERE hash_to = %s", (tx["hash"],))
             result.extend(found_exchanges)
