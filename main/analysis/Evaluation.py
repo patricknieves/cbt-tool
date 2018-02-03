@@ -43,8 +43,9 @@ for scraper_index, scraper_row in df_scraped_data.iterrows():
     for tool_index, tool_row in df_found_data.iterrows():
         # TODO add lower time bound
         if pd.to_datetime(tool_row["time_block_from"]) - datetime.timedelta(minutes=10) < pd.to_datetime(scraper_row["time_exchange"]):
-            if scraper_row["amount_from"] == tool_row["amount_from"] and \
-                            scraper_row["amount_to"] == tool_row["amount_to"] and \
+            # String comparison as float comparison is not precise
+            if str(scraper_row["amount_from"]) == str(tool_row["amount_from"]) and \
+                            str(scraper_row["amount_to"]) == str(tool_row["amount_to"]) and \
                             scraper_row["address_from"] == tool_row["address_from"] and \
                             scraper_row["address_to"] == tool_row["address_to"] and \
                             scraper_row["hash_from"] == tool_row["hash_from"] and \
@@ -52,32 +53,59 @@ for scraper_index, scraper_row in df_scraped_data.iterrows():
                 # TODO add right set_value command
                 df_scraped_data.at[scraper_index, "found"] = True
                 df_found_data.at[tool_index, "shapeshift"] = True
+                print ("found")
                 #df_scraped_data["found"][scraper_index] = True
                 #df_found_data["shapeshift"][tool_index] = True
-                print ("found")
         else:
             break
 
 print(len(df_scraped_data[df_scraped_data["found"] == True]))
-print(df_scraped_data[df_scraped_data["found"] == True].head())
+#print(df_scraped_data[df_scraped_data["found"] == True].head())
 print(len(df_scraped_data[df_scraped_data["found"] == False]))
-print(df_scraped_data[df_scraped_data["found"] == False].head())
+#print(df_scraped_data[df_scraped_data["found"] == False].head())
 
 # write result to new csv files
-df_scraped_data.to_csv('out_scraped.csv')
-df_found_data.to_csv('out_tool.csv')
+df_scraped_data.to_csv('out_scraped2.csv')
+df_found_data.to_csv('out_tool2.csv')
 
 
 def find_with_shapeshift_api():
     last_address = None
     found_exchanges_for_one_address = []
     found = False
+
     for tool_index, tool_row in df_found_data.iterrows():
-        if not last_address or last_address == tool_row["address_from"]:
-            # TODO if already found in first process skip, and set found = True  otherwise continue
+        # First Entry
+        if not last_address:
+            last_address = tool_row["address_from"]
+            found_exchanges_for_one_address.append({"index":tool_index, "row":tool_row})
+            if tool_row["shapeshift"] == True:
+                found = True
+        # Entry is in the same group as previous / has the same address_from
+        elif last_address == tool_row["address_from"]:
+            # If already found in first process skip
+            if found == True:
+                continue
+            elif tool_row["shapeshift"] == True:
+                found = True
+                continue
+            # Else add entry to group of exchanges with same address_from
+            else:
+                found_exchanges_for_one_address.append({"index":tool_index, "row":tool_row})
+                continue
+        # Entry is in another group as previous / has another address_from
+        else:
+            # Exchnage wasn't found before -> check with Shapeshift API if BTC/ETH exchange and if yes if corresponding Tx found
+            if found == False:
+                Shapeshift_api.get_exchange(tool_row["address_from"])
+                # TODO ETH/BTC? & right output?
+
+            # Reset values
+            found = False
+            found_exchanges_for_one_address = []
+
+            # Add current row, set new last_address
             found_exchanges_for_one_address.append({"index":tool_index, "row":tool_row})
             last_address = tool_row["address_from"]
-        else:
-            Shapeshift_api.get_exchange(tool_row["address_from"])
-            # TODO Analyze what kind of Exchange and if BTC/ETH if correct // OR delete if found == True
-            # Then delete array, add current row, set last_address = current row and continue
+            if tool_row["shapeshift"] == True:
+                found = True
