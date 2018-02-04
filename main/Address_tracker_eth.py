@@ -70,16 +70,16 @@ class Address_tracker_eth(object):
 
     def load_new_transactions(self, current_exchange_time):
         # Load until last shapeshift transactions is 1 day older than the current transaction to check
-        while not self.shapeshift_transactions or current_exchange_time < datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"]) + 24*60*60):
+        while not self.shapeshift_transactions or current_exchange_time < datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"]) + 1*24*60*60):
             print("Wait one second")
             time.sleep(1)
             more_transactions = self.get_transactions_for_address(self.endblock_ETH - self.number_of_blocks, self.endblock_ETH)
             self.shapeshift_transactions.extend(more_transactions)
             self.endblock_ETH = self.endblock_ETH - self.number_of_blocks - 1
 
-        # Delete transactions which are newer than 24 hours
+        # Delete transactions which are newer than 2 days
         for address_transaction in list(self.shapeshift_transactions):
-            if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 24*60*60):
+            if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 2*24*60*60):
                 self.shapeshift_transactions.remove(address_transaction)
             else:
                 break
