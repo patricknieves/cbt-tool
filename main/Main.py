@@ -2,7 +2,6 @@ from Exchange_finder import Exchange_finder
 import Database_manager
 import Currency_apis
 import time
-import os
 from Address_tracker_btc import Address_tracker_btc
 
 from pycoin.blockchain.BlockChain import BlockChain
@@ -10,7 +9,8 @@ from pycoin.block import Block
 from main.bitcoin_disk import Blockfiles
 import bitcoin_disk
 
-def main():
+
+def main_pycoin():
     b = BlockChain()
     print(str(b.last_block_hash()))
     #path_BTC = os.path.join = ("E:", "Masterarbeit", "btc_node")
@@ -47,7 +47,7 @@ def main():
                 print(str(tx_out.script))
 
 
-def mainX():
+def main():
     print ("starting time: " + str(time.time()))
     # Create MySQL Database and connect
     Database_manager.initialize_db()

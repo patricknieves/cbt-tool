@@ -121,8 +121,11 @@ def find_with_shapeshift_api(df_found_data):
     i = 0
 
     for tool_index, tool_row in df_found_data.iterrows():
-        # First Entry
+        # testing
+        i = i + 1
         print("Checking tx nr. " + str(i))
+
+        # First Entry
         if not last_address:
             last_address = tool_row["address_from"]
             found_exchanges_for_one_address.append({"index": tool_index, "row": tool_row})
@@ -167,11 +170,6 @@ def find_with_shapeshift_api(df_found_data):
             last_address = tool_row["address_from"]
             if tool_row["shapeshift"] == True:
                 found = True
-
-        # testing
-        i = i + 1
-        if i > 50:
-            break
 
     df_found_data.to_csv('final_analysis.csv')
 

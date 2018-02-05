@@ -82,7 +82,8 @@ class Exchange_finder(object):
                                         for output_transaction_to in transaction_to["outputs"]:
                                             # Compare Values with Rates
                                             # The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
-                                            expected_output = (output_transaction_from["amount"] * rate_cmc) - Settings.get_exchanger_fee(transaction_to["symbol"]) # - transaction_to["fee"]
+                                            fee_exchange = Settings.get_exchanger_fee(transaction_to["symbol"])
+                                            expected_output = (output_transaction_from["amount"] * rate_cmc) - fee_exchange # - transaction_to["fee"]
                                             if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < output_transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):
                                                 exchanger = "Shapeshift"
 
@@ -90,7 +91,6 @@ class Exchange_finder(object):
                                                 # exchanger = Shapeshift_api.get_exchanger_name(transaction_from["address"], transaction_to["address"])
 
                                                 # Update DB
-                                                fee_exchange = expected_output - output_transaction_to["amount"]
                                                 Database_manager.insert_exchange(transaction_from["symbol"],
                                                                                  transaction_to["symbol"],
                                                                                  output_transaction_from["amount"],
