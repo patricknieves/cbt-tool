@@ -40,7 +40,7 @@ class Blockfiles(object):
         d = self.f.read(N)
         if len(d) >= N:
             return d
-        if self.next_file():
+        if self._next_file():
             d1 = d + self.f.read(N-len(d))
             return d1
         return b""

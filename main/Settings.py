@@ -1,19 +1,19 @@
 def get_rate_lower_bound(currency):
     if currency == "BTC":
-        return 0.93
+        return 0.90
     elif currency == "ETH":
-        return 0.93
+        return 0.90
     else:
-        return 0.95
+        return 0.90
 
 
 def get_rate_upper_bound(currency):
     if currency == "BTC":
-        return 1.09
+        return 1.1
     elif currency == "ETH":
-        return 1.09
+        return 1.1
     else:
-        return 1.2
+        return 1.1
 
 
 def get_exchange_time_lower_bound(currency):
@@ -38,7 +38,7 @@ def get_preparation_range(currency):
     if currency == "BTC":
         return 506
     elif currency == "ETH":
-        return 1000
+        return 2000
     else:
         return
 
