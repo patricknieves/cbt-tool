@@ -17,9 +17,9 @@ def find():
         eth_finder.find_exchanges()
 
         elapsed_time = time.time() - start_time
-        if elapsed_time < 3*60:
+        if elapsed_time < 30*60:
             print("Waiting 30 min for next loop")
-            time.sleep(3*60)
+            time.sleep(30*60)
 
 # Use this method when Exchanges Table already filled but additional data still wasn't found
 def main_find_from_exact_block():

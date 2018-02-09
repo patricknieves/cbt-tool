@@ -25,7 +25,7 @@ def get_shapeshift_exchanges_limitless():
     while True:
         start_time_loop = time.time()
         shapeshift_manager.get_new_exchanges()
-        duration_to_wait = shapeshift_manager.duration.total_seconds()/2
+        duration_to_wait = shapeshift_manager.duration
         elapsed_time_loop = time.time() - start_time_loop
         if elapsed_time_loop < duration_to_wait:
             print ("Done! Wait " + str(duration_to_wait - elapsed_time_loop) + " seconds")
@@ -56,7 +56,7 @@ def get_shapeshift_exchanges_instant(runtime_in_sec):
     # Run a whole day
     while elapsed_time < runtime_in_sec:
         start_time_loop = time.time()
-        new_exchanges = shapeshift_manager.get_new_exchanges()
+        shapeshift_manager.get_new_exchanges()
         duration_to_wait = shapeshift_manager.duration.total_seconds()/2
         t = Thread(target=Finder.find_exchange_data, args=())
         #t = Thread(target=find_exchange_data, args=(new_exchanges,))

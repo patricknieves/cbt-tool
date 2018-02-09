@@ -1,7 +1,6 @@
 import Corresponding_tx
 from main import Currency_apis, Database_manager, Shapeshift_api, Settings
 
-# TODO change all API Requests with full node Requests
 
 class Data_retriever(object):
 
@@ -37,7 +36,9 @@ class Data_retriever(object):
                                     print("No output address for tx: " + transaction["hash"])
                                 else:
                                     if exchange_details["status"] == "complete" and \
-                                                    exchange_details["outgoingType"] == exchange["currency_to"]:
+                                                    exchange_details["outgoingType"] == exchange["currency_to"]and \
+                                                    exchange_details["incomingType"] == exchange["currency_from"]and \
+                                                    str(float(exchange_details["incomingCoin"])) == str(float(exchange["amount_from"])):
                                         #print("Found Exchange!")
 
                                         Database_manager.update_shapeshift_exchange(exchange_details["outgoingCoin"],
