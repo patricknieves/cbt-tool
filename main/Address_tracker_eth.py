@@ -73,7 +73,7 @@ class Address_tracker_eth(object):
         # First Iteration: Search for Block number that is in the future (range: 2 days)
         if not self.shapeshift_transactions:
             time_first_tx = None
-            while not time_first_tx or current_exchange_time > datetime.datetime.utcfromtimestamp(time_first_tx - 2*24*60*60):
+            while not time_first_tx or current_exchange_time > datetime.datetime.utcfromtimestamp(time_first_tx - 1.5*24*60*60):
                 print("Wait one second. Searching Block range")
                 time.sleep(1)
                 self.endblock_ETH = self.endblock_ETH + Settings.get_preparation_range("ETH")
@@ -91,7 +91,7 @@ class Address_tracker_eth(object):
 
         # Delete transactions which are newer than 2 days
         for address_transaction in list(self.shapeshift_transactions):
-            if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 2*24*60*60):
+            if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 1.5*24*60*60):
                 self.shapeshift_transactions.remove(address_transaction)
             else:
                 break

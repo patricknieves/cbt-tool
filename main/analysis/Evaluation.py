@@ -7,10 +7,10 @@ import numpy as np
 
 def main():
 
-    # run_whole_analysis()
+    run_whole_analysis()
 
     # Or
-    run_only_api_comparison()
+    #run_only_api_comparison()
 
 
 def run_whole_analysis():
@@ -67,7 +67,7 @@ def load_scraped_data():
 
 def load_tool_data():
     # Load data found by tool
-    file = 'local_exchanges_01.02_very_high_range.csv'
+    file = 'local_exchanges_07.02.csv'
     df_found_data = pd.read_csv(file)
     df_found_data['time_block_from'] = pd.to_datetime(df_found_data['time_block_from'])
     df_found_data["shapeshift"] = False
@@ -106,8 +106,8 @@ def compare_exchanges(df_scraped_data, df_found_data):
     # print(df_scraped_data[df_scraped_data["found"] == False].head())
 
     # write result to new csv files
-    df_scraped_data.to_csv('out_scraped3.csv')
-    df_found_data.to_csv('out_tool3.csv')
+    df_scraped_data.to_csv('out_scraped_07.02.csv')
+    df_found_data.to_csv('out_tool_07.02.csv')
 
     return df_found_data
 
@@ -171,7 +171,7 @@ def find_with_shapeshift_api(df_found_data):
             if tool_row["shapeshift"] == True:
                 found = True
 
-    df_found_data.to_csv('final_analysis.csv')
+    df_found_data.to_csv('final_analysis_07.02.csv')
 
 
 if __name__ == "__main__": main()
