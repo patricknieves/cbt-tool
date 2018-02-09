@@ -171,3 +171,47 @@ def get_fee_BTC(tx_hash):
     else:
         traceback.print_exc()
         sys.exit("Counldn't get fee for BTC: " + str(tx_hash))
+
+def get_transactions_for_address(currency, address):
+    Tor.change_ip()
+    for attempt in range(5):
+        try:
+            if currency == "ETH":
+                transactions = requests.get("http://api.etherscan.io/api?module=account&"
+                                            "action=txlist&" +
+                                            "address=" + address +
+                                            "&sort=desc" +
+                                            "&apikey=" + "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N").json()["result"]
+            elif currency == "BTC":
+                transactions = requests.get("https://blockchain.info/de/rawaddr/" + address).json()["txs"]
+        except:
+            print ("Wait 5 sec")
+            time.sleep(5)
+            Tor.change_ip()
+        else:
+            return transactions
+    else:
+        traceback.print_exc()
+        print("Couldn't get transactions from Etherscan")
+
+
+def get_transactions_for_address_with_bounds(etherscan_key, shapeshift_main_address_ETH, startblock, endblock):
+    Tor.change_ip()
+    for attempt in range(5):
+        try:
+            transactions = requests.get("http://api.etherscan.io/api?module=account&"
+                                        "action=txlist&" +
+                                        "address=" + shapeshift_main_address_ETH +
+                                        "&startblock=" + str(startblock) +
+                                        "&endblock=" + str(endblock) +
+                                        "&sort=desc" +
+                                        "&apikey=" + etherscan_key).json()["result"]
+        except:
+            print ("Wait 5 sec")
+            time.sleep(5)
+            Tor.change_ip()
+        else:
+            return transactions
+    else:
+        traceback.print_exc()
+        sys.exit("Couldn't get transactions from Etherscan")

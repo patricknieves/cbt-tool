@@ -15,10 +15,10 @@ class Currency_data(object):
         transaction_time = calendar.timegm(transaction_time.timetuple())
         if not self.history:
             Tor.change_ip()
-            self.history = self.h.histoHour(self.currency_from, self.currency_to, toTs=transaction_time, limit=2000)["Data"][::-1]
+            self.history = self.h.histoHour(self.currency_from, self.currency_to, toTs=(transaction_time + 60*60), limit=2000)["Data"][::-1]
         for data_set in list(self.history):
             # Delete Data which is older than 1 hour
-            if (transaction_time - data_set["time"]) < -3600:
+            if (transaction_time - data_set["time"]) < -60*60:
                 self.history.remove(data_set)
                 if not self.history:
                     return self.get_value(transaction_time)
@@ -26,7 +26,7 @@ class Currency_data(object):
             elif (transaction_time - data_set["time"]) < 0:
                 continue
             # Return rate if data set is in range of 1 hour
-            elif (transaction_time - data_set["time"]) <= 3600:
+            elif (transaction_time - data_set["time"]) <= 60*60:
                 return max(data_set["low"], data_set["high"]) - abs(data_set["low"] - data_set["high"])/2
             else:
                 print ("No currency rate data found for Exchange from " + self.currency_from + " to " + self.currency_to)
