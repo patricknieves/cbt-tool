@@ -36,7 +36,7 @@ class Data_retriever(object):
                         # Note: float rounds numbers here. str used because float comparation in python not always working.
                         # This is needed if exchanges are retrieved from DB and not directly from the Shapeshift API
                         for output in transaction["outputs"]:
-                            if str(float(exchange["amount_from"])) == str(float(output["amount"])):
+                            if str(float(exchange["amount_from"]))[:9] == str(float(output["amount"]))[:9]:
                                 exchange_details = Shapeshift_api.get_exchange(output["address"])
                                 if not exchange_details:
                                     print("No output address for tx: " + transaction["hash"])
@@ -44,7 +44,7 @@ class Data_retriever(object):
                                     if exchange_details["status"] == "complete" and \
                                                     exchange_details["outgoingType"] == exchange["currency_to"]and \
                                                     exchange_details["incomingType"] == exchange["currency_from"]and \
-                                                    str(float(exchange_details["incomingCoin"])) == str(float(exchange["amount_from"])):
+                                                    str(float(exchange_details["incomingCoin"]))[:9] == str(float(exchange["amount_from"]))[:9]:
                                         #print("Found Exchange!")
 
                                         Database_manager.update_shapeshift_exchange(exchange_details["outgoingCoin"],
