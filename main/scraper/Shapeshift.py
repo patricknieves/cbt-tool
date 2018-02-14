@@ -36,9 +36,9 @@ class Shapeshift(object):
                 # Write to DB if exchange older (1 min) than the last new retrieved exchange
                 if (exchange["timestamp"] + 60 < new_exchanges[-1]["timestamp"]):
                     # Get dollar rate and current Shapeshift fees
-                    exchange["dollarvalue_from"] = self.cmc.get_dollarvalue(new_exchange["curIn"])
-                    exchange["dollarvalue_to"] = self.cmc.get_dollarvalue(new_exchange["curOut"])
-                    exchange["fee_exchange"] = self.shapeshift_data.get_shapeshift_fees(new_exchange["curOut"])
+                    exchange["dollarvalue_from"] = self.cmc.get_dollarvalue(exchange["curIn"])
+                    exchange["dollarvalue_to"] = self.cmc.get_dollarvalue(exchange["curOut"])
+                    exchange["fee_exchange"] = self.shapeshift_data.get_shapeshift_fees(exchange["curOut"])
                     time_exchange = datetime.datetime.utcfromtimestamp(exchange["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
                     Database_manager.insert_shapeshift_exchange(exchange["curIn"],
                                                                 exchange["curOut"],
