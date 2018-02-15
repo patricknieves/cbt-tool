@@ -16,6 +16,7 @@ class Address_tracker_eth(object):
         # Added number can/must be adapted
         self.endblock_ETH = current_block_number
         self.shapeshift_transactions = []
+        self.shapeshift_transactions_possible_deposit_addresses = []
         self.shapeshift_output_addresses = ["0xd3273eba07248020bf98a8b560ec1576a612102f",
                                             "0x3b0bc51ab9de1e5b7b6e34e5b960285805c41736",
                                             "0xeed16856d551569d134530ee3967ec79995e2051",
@@ -23,15 +24,11 @@ class Address_tracker_eth(object):
         self.shapeshift_deposit_stop_addresses = [self.shapeshift_main_address_ETH,
                                           "0x876eabf441b2ee5b5b0554fd502a8e0600950cfa"]
 
-    def is_shapeshift_related_as_deposit(self, exchange_transaction):
-        if not(exchange_transaction["outputs"][0]["address"] in self.shapeshift_deposit_stop_addresses):
-            for address_transaction in self.shapeshift_transactions:
-                if exchange_transaction["blocktime"] < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
-                    # Shapeshift sends deposits to main address after certain time (approx. 2 hours)
-                    if exchange_transaction["outputs"][0]["address"] == str(address_transaction["from"]):
-                        return True
-                else:
-                    return False
+
+
+    def is_shapeshift_related_as_deposit_only_addresses(self, exchange_transaction):
+        if exchange_transaction["outputs"][0]["address"] in self.shapeshift_transactions_possible_deposit_addresses:
+            return True
         return False
 
     def is_shapeshift_related_as_withdrawl_known_addresses(self, exchange_transaction):
@@ -39,28 +36,20 @@ class Address_tracker_eth(object):
             return True
         return False
 
-    def is_shapeshift_related_as_withdrawl(self, exchange_transaction):
-        if exchange_transaction["inputs"][0]["address"] != unicode(self.shapeshift_main_address_ETH):
-            for address_transaction in reversed(self.shapeshift_transactions):
-                if exchange_transaction["blocktime"] > datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
-                    # Shapeshift sends money from main address to sub addresses (mostly > 400 ETH), which send withdrawls to customers
-                    if exchange_transaction["inputs"][0]["address"] == str(address_transaction["to"]):
-                        return True
-                else:
-                    return False
-
     def check_and_save_if_shapeshift_related(self, exchange_transaction):
-        self.load_new_transactions(exchange_transaction["blocktime"])
-        if self.is_shapeshift_related_as_deposit(exchange_transaction):
-            exchange_transaction["is_exchange_deposit"] = True
-            exchange_transaction["is_exchange_withdrawl"] = False
-        elif self.is_shapeshift_related_as_withdrawl(exchange_transaction):
+        if self.is_shapeshift_related_as_withdrawl_known_addresses(exchange_transaction):
             exchange_transaction["is_exchange_deposit"] = False
             exchange_transaction["is_exchange_withdrawl"] = True
+        elif self.is_shapeshift_related_as_deposit_only_addresses(exchange_transaction):
+            exchange_transaction["is_exchange_deposit"] = True
+            exchange_transaction["is_exchange_withdrawl"] = False
         return exchange_transaction
 
     def get_block_by_number_only_shapeshift_txs(self, current_block_number):
         new_transactions = Currency_apis.get_block_by_number("ETH", current_block_number)
+        if new_transactions:
+            # Load Shapeshift transactions from Etherscan
+            self.load_new_transactions(new_transactions[0]["blocktime"])
         block = []
         for new_transaction in new_transactions:
             transaction = self.check_and_save_if_shapeshift_related(new_transaction)
@@ -69,7 +58,6 @@ class Address_tracker_eth(object):
         return block
 
     def load_new_transactions(self, current_exchange_time):
-
         # First Iteration: Search for Block number that is in the future (range: 2 days)
         if not self.shapeshift_transactions:
             time_first_tx = None
@@ -87,12 +75,17 @@ class Address_tracker_eth(object):
             time.sleep(1)
             more_transactions = self.get_transactions_for_address(self.endblock_ETH - self.number_of_blocks, self.endblock_ETH)
             self.shapeshift_transactions.extend(more_transactions)
+            for tx in more_transactions:
+                if not(tx["from"] in self.shapeshift_deposit_stop_addresses):
+                    self.shapeshift_transactions_possible_deposit_addresses.append(tx["from"])
             self.endblock_ETH = self.endblock_ETH - self.number_of_blocks - 1
 
         # Delete transactions which are newer than 2 days
         for address_transaction in list(self.shapeshift_transactions):
             if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 1.5*24*60*60):
                 self.shapeshift_transactions.remove(address_transaction)
+                if address_transaction["from"] in self.shapeshift_transactions_possible_deposit_addresses:
+                    self.shapeshift_transactions_possible_deposit_addresses.remove(address_transaction["from"])
             else:
                 break
 
@@ -125,3 +118,26 @@ class Address_tracker_eth(object):
             if self.is_shapeshift_related_as_withdrawl(transaction_to):
                 return "Shapeshift"
         return "Unknown"
+
+    # Old methods - too slow (takes ca. 8 sec for one block)
+
+    def is_shapeshift_related_as_deposit(self, exchange_transaction):
+        if not(exchange_transaction["outputs"][0]["address"] in self.shapeshift_deposit_stop_addresses):
+            for address_transaction in self.shapeshift_transactions:
+                if exchange_transaction["blocktime"] < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
+                    # Shapeshift sends deposits to main address after certain time (approx. 2 hours)
+                    if exchange_transaction["outputs"][0]["address"] == str(address_transaction["from"]):
+                        return True
+                else:
+                    return False
+        return False
+
+    def is_shapeshift_related_as_withdrawl(self, exchange_transaction):
+        if exchange_transaction["inputs"][0]["address"] != unicode(self.shapeshift_main_address_ETH):
+            for address_transaction in reversed(self.shapeshift_transactions):
+                if exchange_transaction["blocktime"] > datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"])):
+                    # Shapeshift sends money from main address to sub addresses (mostly > 400 ETH), which send withdrawls to customers
+                    if exchange_transaction["inputs"][0]["address"] == str(address_transaction["to"]):
+                        return True
+                else:
+                    return False
