@@ -24,3 +24,11 @@ class Address_manager(object):
             return self.address_tracker_eth.get_block_by_number_only_shapeshift_txs(current_block_number)
         else:
             return []
+
+    def get_blocks_by_number(self, currency, current_block_number, number_of_blocks):
+        if currency == "BTC":
+            return self.address_tracker_btc.get_blocks_by_number_only_shapeshift_txs(current_block_number, number_of_blocks)
+        elif currency == "ETH":
+            return self.address_tracker_eth.get_blocks_by_number_only_shapeshift_txs(current_block_number, number_of_blocks)
+        else:
+            return []

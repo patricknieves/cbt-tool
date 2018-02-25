@@ -7,9 +7,11 @@ import sys
 
 import Settings
 import Currency_apis
+from async_requests import Async_requester
 
 class Address_tracker_eth(object):
     def __init__(self, current_block_number):
+        self.async_requester = Async_requester()
         self.shapeshift_main_address_ETH = "0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413"
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
         self.number_of_blocks = 2000
@@ -56,6 +58,22 @@ class Address_tracker_eth(object):
             if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
                 block.append(transaction)
         return block
+
+    def get_blocks_by_number_only_shapeshift_txs(self, current_block_number, number_of_blocks):
+        blocks = self.async_requester.get_multiple_blocks("ETH", current_block_number, number_of_blocks)
+        filtered_blocks = []
+        for block in blocks:
+            if block:
+                # Load Shapeshift transactions from Etherscan
+                self.load_new_transactions(block[0]["blocktime"])
+                filtered_block = []
+                for new_transaction in block:
+                    transaction = self.check_and_save_if_shapeshift_related(new_transaction)
+                    if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
+                        filtered_block.append(transaction)
+                if filtered_block:
+                    filtered_blocks.append(filtered_block)
+        return filtered_blocks
 
     def load_new_transactions(self, current_exchange_time):
         # First Iteration: Search for Block number that is in the future (range: 2 days)

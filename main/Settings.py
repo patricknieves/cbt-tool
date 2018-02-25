@@ -75,3 +75,11 @@ def get_scraper_offset_for_first_iteration(currency):
         return 400
     else:
         return
+
+def get_block_number_for_time_range(currency):
+    if currency == "BTC":
+        return 6
+    elif currency == "ETH":
+        return 4*60
+    else:
+        return
