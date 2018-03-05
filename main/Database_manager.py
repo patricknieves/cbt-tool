@@ -16,12 +16,37 @@ class DB:
                 cursor.execute(sql)
             else:
                 cursor.execute(sql, parameters)
+            cursor.close()
         except (AttributeError, MySQLdb.OperationalError):
             print("RECONNECTING TO DB")
             self.connect()
             cursor = self.conn.cursor()
-            cursor.execute(sql, parameters)
-        return cursor
+            if parameters is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, parameters)
+            cursor.close()
+
+    def query_get(self, sql, parameters=None):
+        try:
+            cursor = self.conn.cursor()
+            if parameters is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, parameters)
+            result = cursor.fetchall()
+            cursor.close()
+        except (AttributeError, MySQLdb.OperationalError):
+            print("RECONNECTING TO DB")
+            self.connect()
+            cursor = self.conn.cursor()
+            if parameters is None:
+                cursor.execute(sql)
+            else:
+                cursor.execute(sql, parameters)
+            result = cursor.fetchall()
+            cursor.close()
+        return result
 
     def commit(self):
         try:
@@ -203,7 +228,7 @@ def insert_shapeshift_exchange(currency_from,
                                dollarvalue_to
                                ):
     try:
-        response = dbClass.query(
+        dbClass.query(
             "INSERT INTO scraper_second ("
             "currency_from, "
             "currency_to, "
@@ -222,7 +247,6 @@ def insert_shapeshift_exchange(currency_from,
              dollarvalue_to
              ))
         dbClass.commit()
-        return response.lastrowid
     except:
         print("Problem saving Transaction")
         traceback.print_exc()
@@ -231,8 +255,7 @@ def insert_shapeshift_exchange(currency_from,
 def get_all_shapeshift_middle_addresses_btc(classification):
     standardized_set = set([])
     try:
-        response = dbClass.query("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
-        results = response.fetchall()
+        results = dbClass.query_get("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
         for row in results:
             standardized_set.add(row[1])
     except:
@@ -244,8 +267,7 @@ def get_all_shapeshift_middle_addresses_btc(classification):
 def get_shapeshift_exchanges_by_currency(currency):
     standardized_dict = []
     try:
-        response = dbClass.query("SELECT * FROM cross_block.scraper_second WHERE amount_to IS NULL AND currency_from = %s", (currency,))
-        results = response.fetchall()
+        results = dbClass.query_get("SELECT * FROM cross_block.scraper_second WHERE amount_to IS NULL AND currency_from = %s", (currency,))
         for row in results:
             dict_item = {"id": row[0],
                          "currency_from": row[1],

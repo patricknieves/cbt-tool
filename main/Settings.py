@@ -31,7 +31,7 @@ def get_exchange_time_upper_bound(currency):
     elif currency == "ETH":
         return 15*60
     else:
-        return 5*60
+        return 15*60
 
 
 def get_preparation_range(currency):
@@ -76,7 +76,7 @@ def get_scraper_offset_for_first_iteration(currency):
     else:
         return
 
-def get_block_number_for_time_range(currency):
+def get_block_number_for_hour(currency):
     if currency == "BTC":
         return 6
     elif currency == "ETH":

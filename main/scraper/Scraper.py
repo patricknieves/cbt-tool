@@ -21,7 +21,6 @@ def setup_db():
 
 def get_shapeshift_exchanges_limitless():
     shapeshift_manager = Shapeshift()
-    # Run a whole day
     while True:
         start_time_loop = time.time()
         shapeshift_manager.get_new_exchanges()

@@ -1,11 +1,10 @@
 import Database_manager
 import Currency_apis
-from async_requests import Async_requester
+import Settings
 
 
 class Address_tracker_btc(object):
     def __init__(self, current_block_number):
-        self.async_requester = Async_requester()
         self.endblock_BTC = current_block_number
         #self.shapeshift_main_addresses = set(Database_manager.get_all_shapeshift_addresses_btc())
         self.shapeshift_main_addresses = ["1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG",
@@ -92,6 +91,13 @@ class Address_tracker_btc(object):
         for address in self.shapeshift_single_addresses:
             Database_manager.insert_shapeshift_address_btc(address, "single")
 
+    def filter_block(self, new_transactions):
+        block = []
+        for new_transaction in new_transactions:
+            transaction = self.check_and_save_if_shapeshift_related(new_transaction)
+            if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
+                block.append(transaction)
+        return block
 
     def get_block_by_number_only_shapeshift_txs(self, current_block_number):
         new_transactions = Currency_apis.get_block_by_number("BTC", current_block_number)
@@ -103,8 +109,7 @@ class Address_tracker_btc(object):
         return block
 
 
-    def get_blocks_by_number_only_shapeshift_txs(self, current_block_number, number_of_blocks):
-        blocks = self.async_requester.get_multiple_blocks("BTC", current_block_number, number_of_blocks)
+    def get_blocks_by_number_only_shapeshift_txs(self, blocks):
         filtered_blocks = []
         for block in blocks:
             filtered_block = []
