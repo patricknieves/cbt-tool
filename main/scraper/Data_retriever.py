@@ -37,33 +37,34 @@ class Data_retriever(object):
                         # This is needed if exchanges are retrieved from DB and not directly from the Shapeshift API
                         for output in transaction["outputs"]:
                             if str(float(exchange["amount_from"]))[:9] == str(float(output["amount"]))[:9]:
-                                exchange_details = Shapeshift_api.get_exchange(output["address"])
-                                if not exchange_details:
-                                    print("No output address for tx: " + transaction["hash"])
-                                else:
-                                    if exchange_details["status"] == "complete" and \
-                                                    exchange_details["outgoingType"] == exchange["currency_to"]and \
-                                                    exchange_details["incomingType"] == exchange["currency_from"]and \
-                                                    str(float(exchange_details["incomingCoin"]))[:9] == str(float(exchange["amount_from"]))[:9]:
-                                        #print("Found Exchange!")
+                                if output["address"]:
+                                    exchange_details = Shapeshift_api.get_exchange(output["address"])
+                                    if not exchange_details:
+                                        print("No output address for tx: " + transaction["hash"])
+                                    else:
+                                        if exchange_details["status"] == "complete" and \
+                                                        exchange_details["outgoingType"] == exchange["currency_to"]and \
+                                                        exchange_details["incomingType"] == exchange["currency_from"]and \
+                                                        str(float(exchange_details["incomingCoin"]))[:9] == str(float(exchange["amount_from"]))[:9]:
+                                            #print("Found Exchange!")
 
-                                        Database_manager.update_shapeshift_exchange(exchange_details["outgoingCoin"],
-                                                                                    transaction["fee"],
-                                                                                    exchange_details["address"],
-                                                                                    exchange_details["withdraw"],
-                                                                                    transaction["hash"],
-                                                                                    exchange_details["transaction"],
-                                                                                    transaction["time"],
-                                                                                    transaction["blocktime"],
-                                                                                    self.current_block_number,
-                                                                                    exchange["id"]
-                                                                                    )
+                                            Database_manager.update_shapeshift_exchange(exchange_details["outgoingCoin"],
+                                                                                        transaction["fee"],
+                                                                                        exchange_details["address"],
+                                                                                        exchange_details["withdraw"],
+                                                                                        transaction["hash"],
+                                                                                        exchange_details["transaction"],
+                                                                                        transaction["time"],
+                                                                                        transaction["blocktime"],
+                                                                                        self.current_block_number,
+                                                                                        exchange["id"]
+                                                                                        )
 
-                                        Corresponding_tx.search_corresponding_transaction(exchange_details["outgoingType"],
-                                                                                          exchange_details["transaction"],
-                                                                                          exchange["id"])
-                                        self.exchanges.remove(exchange)
-                                        break
+                                            Corresponding_tx.search_corresponding_transaction(exchange_details["outgoingType"],
+                                                                                              exchange_details["transaction"],
+                                                                                              exchange["id"])
+                                            self.exchanges.remove(exchange)
+                                            break
                     elif block_time_diff >= 10*60:
                         self.exchanges.remove(exchange)
             self.current_block_number = self.current_block_number - 1
