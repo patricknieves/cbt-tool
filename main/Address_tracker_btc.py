@@ -83,7 +83,7 @@ class Address_tracker_btc(object):
             new_transactions = Currency_apis.get_block_by_number("BTC", start_block - number)
             for transaction in new_transactions:
                 self.check_and_save_if_shapeshift_related_prepare(transaction)
-        # Optinal. Save all found adresses
+        # Optional. Save all found adresses
         for address in self.shapeshift_main_addresses:
             Database_manager.insert_shapeshift_address_btc(address, "main")
         for address in self.shapeshift_middle_addresses:
@@ -98,25 +98,3 @@ class Address_tracker_btc(object):
             if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
                 block.append(transaction)
         return block
-
-    def get_block_by_number_only_shapeshift_txs(self, current_block_number):
-        new_transactions = Currency_apis.get_block_by_number("BTC", current_block_number)
-        block = []
-        for new_transaction in new_transactions:
-            transaction = self.check_and_save_if_shapeshift_related(new_transaction)
-            if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
-                block.append(transaction)
-        return block
-
-
-    def get_blocks_by_number_only_shapeshift_txs(self, blocks):
-        filtered_blocks = []
-        for block in blocks:
-            filtered_block = []
-            for new_transaction in block:
-                transaction = self.check_and_save_if_shapeshift_related(new_transaction)
-                if new_transaction["is_exchange_deposit"] or new_transaction["is_exchange_withdrawl"]:
-                    filtered_block.append(transaction)
-            if filtered_block:
-                filtered_blocks.append(filtered_block)
-        return filtered_blocks

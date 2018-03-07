@@ -27,6 +27,20 @@ class DB:
                 cursor.execute(sql, parameters)
             cursor.close()
 
+    def query_multiple(self, sql, parameters):
+        try:
+            cursor = self.conn.cursor()
+            if parameters:
+                cursor.executemany(sql, parameters)
+            cursor.close()
+        except (AttributeError, MySQLdb.OperationalError):
+            print("RECONNECTING TO DB")
+            self.connect()
+            cursor = self.conn.cursor()
+            if parameters:
+                cursor.executemany(sql, parameters)
+            cursor.close()
+
     def query_get(self, sql, parameters=None):
         try:
             cursor = self.conn.cursor()
@@ -218,6 +232,38 @@ def insert_exchange(currency_from,
         traceback.print_exc()
         #db.rollback()
 
+def insert_multiple_exchanges(parameter_list):
+    try:
+        dbClass.query_multiple(
+            "INSERT INTO exchanges ("
+            "currency_from, "
+            "currency_to,"
+            "amount_from,"
+            "amount_to,"
+            "fee_from,"
+            "fee_to,"
+            "fee_exchange,"
+            "address_from,"
+            "address_to,"
+            "hash_from,"
+            "hash_to,"
+            "time_from,"
+            "time_block_from,"
+            "time_to,"
+            "time_block_to,"
+            "block_nr_from,"
+            "block_nr_to,"
+            "dollarvalue_from,"
+            "dollarvalue_to,"
+            "exchanger"
+            ") "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            parameter_list)
+        dbClass.commit()
+    except:
+        print("Problem saving Exchanges")
+        traceback.print_exc()
+        #db.rollback()
 
 def insert_shapeshift_exchange(currency_from,
                                currency_to,

@@ -22,7 +22,7 @@ def get_exchange_time_lower_bound(currency):
     elif currency == "ETH":
         return 0
     else:
-        return 0.5*60
+        return 0
 
 
 def get_exchange_time_upper_bound(currency):
