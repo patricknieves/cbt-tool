@@ -20,7 +20,7 @@ class Exchange_finder(object):
         self.current_block_number_dict = self.get_current_block_numbers(currencies_array) if current_block_number_dict is None \
             else current_block_number_dict
         # Start Address Manager with current block numbers
-        self.address_manager = Address_manager(current_block_number_dict)
+        self.address_manager = Address_manager()
         self.blocks_from = []
         self.transactions_to = []
         self.time_newest_block_dict = {}
@@ -38,7 +38,7 @@ class Exchange_finder(object):
         start_preparation = time.time()
 
         # Perform Shapeshift Address recognition for BTC 700 Blocks before starting point
-        self.address_manager.prepare()
+        self.address_manager.prepare(self.current_block_number_dict)
 
         # Load first blocks
         self.load_first_blocks()

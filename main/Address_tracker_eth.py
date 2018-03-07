@@ -9,12 +9,10 @@ import Settings
 import Currency_apis
 
 class Address_tracker_eth(object):
-    def __init__(self, current_block_number):
+    def __init__(self):
         self.shapeshift_main_address_ETH = "0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413"
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
         self.number_of_blocks = 2000
-        # Added number can/must be adapted
-        self.endblock_ETH = current_block_number
         self.shapeshift_transactions = []
         self.shapeshift_transactions_possible_deposit_addresses = set()
         self.shapeshift_output_addresses = ["0xd3273eba07248020bf98a8b560ec1576a612102f",
@@ -46,35 +44,30 @@ class Address_tracker_eth(object):
                     block.append(new_transaction)
         return block
 
-    def prepare_addresses(self):
+    def prepare_addresses(self, endblock_ETH):
         # Load first block and get time
         block = []
         counter = 0
         while not block:
-            block = Currency_apis.get_block_by_number("ETH", self.endblock_ETH - counter)
+            block = Currency_apis.get_block_by_number("ETH", endblock_ETH - counter)
             counter = counter + 1
         current_exchange_time = block[0]["blocktime"]
-        # First Iteration: Search for Block number that is in the future (range: 2 days)
+        # Load until last shapeshift transactions 1,5 days older than the starting time
         if not self.shapeshift_transactions:
-            time_first_tx = None
-            while not time_first_tx or current_exchange_time > datetime.datetime.utcfromtimestamp(time_first_tx - 1.5*24*60*60):
-                print("Wait one second. Searching Block range")
+            endblock_ETH = endblock_ETH + 1
+            while not self.shapeshift_transactions or current_exchange_time > datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"]) - 1.5*24*60*60):
+                print("Wait one second. Searching Shapeshift exchanges")
                 time.sleep(1)
-                self.endblock_ETH = self.endblock_ETH + Settings.get_preparation_range("ETH")
-                txs = self.get_transactions_for_address(self.endblock_ETH - 100, self.endblock_ETH)
-                if txs:
-                    time_first_tx = int(txs[1]["timeStamp"])
-        # Load until last shapeshift transactions older than the current transaction to check
-        while not self.shapeshift_transactions or current_exchange_time < datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"])):
-            print("Wait one second")
-            time.sleep(1)
-            more_transactions = self.get_transactions_for_address(self.endblock_ETH - self.number_of_blocks, self.endblock_ETH)
-            if more_transactions:
-                for tx in more_transactions:
-                    if not(tx["from"] in self.shapeshift_deposit_stop_addresses):
-                        self.shapeshift_transactions.append(tx)
-                        self.shapeshift_transactions_possible_deposit_addresses.add(tx["from"])
-                self.endblock_ETH = self.endblock_ETH - self.number_of_blocks - 1
+                old_endblock = endblock_ETH
+                endblock_ETH = endblock_ETH + Settings.get_preparation_range("ETH")
+                more_transactions = self.get_transactions_for_address(old_endblock, endblock_ETH)
+                if more_transactions:
+                    for tx in more_transactions:
+                        if not(tx["from"] in self.shapeshift_deposit_stop_addresses):
+                            self.shapeshift_transactions.append(tx)
+                            self.shapeshift_transactions_possible_deposit_addresses.add(tx["from"])
+            self.shapeshift_transactions = list(reversed(self.shapeshift_transactions))
+
         self.delete_old_deposit_addresses(current_exchange_time)
 
     def delete_old_deposit_addresses(self, current_exchange_time):

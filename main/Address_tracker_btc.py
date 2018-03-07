@@ -4,8 +4,7 @@ import Settings
 
 
 class Address_tracker_btc(object):
-    def __init__(self, current_block_number):
-        self.endblock_BTC = current_block_number
+    def __init__(self):
         #self.shapeshift_main_addresses = set(Database_manager.get_all_shapeshift_addresses_btc())
         self.shapeshift_main_addresses = ["1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG",
                                      "1LASN6ra8dwR2EjAfCPcghXDxtME7a89Hk",
@@ -75,9 +74,9 @@ class Address_tracker_btc(object):
                 break
 
     # Iterates over the next x (number_of_blocks) blocks to generate a internal database of known Shapeshift Addresses
-    def prepare_addresses(self):
+    def prepare_addresses(self, endblock_BTC):
         number_of_blocks = Settings.get_preparation_range("BTC")
-        start_block = self.endblock_BTC + number_of_blocks
+        start_block = endblock_BTC + number_of_blocks
         for number in range(number_of_blocks):
             print("Check block:" + str(start_block - number))
             new_transactions = Currency_apis.get_block_by_number("BTC", start_block - number)
