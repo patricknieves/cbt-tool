@@ -8,8 +8,6 @@ from Shapeshift import Shapeshift
 def main():
     setup_db()
     #Database_manager.delete_all_scraper_data()
-    t = Thread(target=Finder.find, args=())
-    t.start()
     get_shapeshift_exchanges_limitless()
 
 
@@ -21,7 +19,11 @@ def setup_db():
 
 def get_shapeshift_exchanges_limitless():
     shapeshift_manager = Shapeshift()
+    t = Thread(target=Finder.find, args=())
+    t.start()
     while True:
+        if not t.isAlive():
+            t.start()
         start_time_loop = time.time()
         shapeshift_manager.get_new_exchanges()
         duration_to_wait = shapeshift_manager.duration
