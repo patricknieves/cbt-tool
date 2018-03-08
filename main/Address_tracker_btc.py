@@ -23,7 +23,7 @@ class Address_tracker_btc(object):
                         or tx_output["address"] in self.shapeshift_middle_addresses \
                         or tx_output["address"] in self.shapeshift_single_addresses:
                     if tx_output["address"][0] != "3":
-                        # Delete Shapeshift Address from Outputs (and leave only User Address)
+                        # Delete Shapeshift Address from Outputs (and leave only User Address(es))
                         exchange_transaction["outputs"].remove(tx_output)
 
                         exchange_transaction["is_exchange_deposit"] = False
@@ -67,7 +67,6 @@ class Address_tracker_btc(object):
                             if not(tx_input["address"] in self.shapeshift_stop_addresses):
                                 print("Adding new SINGLE Address: " + str(tx_input["address"]))
                                 self.shapeshift_single_addresses.add(tx_input["address"])
-                # Delete single addresses after analysing transaction, because no more needed
                 if tx_output["address"] in self.shapeshift_single_addresses:
                     print("Deleting SINGLE Address: " + str(tx_output["address"]))
                     self.shapeshift_single_addresses.remove(tx_output["address"])

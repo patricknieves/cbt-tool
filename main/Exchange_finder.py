@@ -90,7 +90,7 @@ class Exchange_finder(object):
                 self.async_requester.add_request_data(currency, self.current_block_number_dict[currency], 1)
                 self.current_block_number_dict[currency] = self.current_block_number_dict[currency] - 1
             # load blocks
-            new_blocks = self.async_requester.get_multiple_blocks_all_currencies()
+            new_blocks = self.async_requester.get_multiple_blocks()
             # Pass blocks to filtering
             self.filter_all_and_save(new_blocks)
             # Sort
@@ -131,7 +131,7 @@ class Exchange_finder(object):
             if load_more:
                 start = time.time()
                 # load blocks
-                new_blocks = self.async_requester.get_multiple_blocks_all_currencies()
+                new_blocks = self.async_requester.get_multiple_blocks()
                 # Pass blocks to filtering
                 self.filter_all_and_save(new_blocks)
                 print("Block Loading Duration: " + str(time.time() - start))

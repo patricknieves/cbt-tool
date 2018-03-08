@@ -12,7 +12,7 @@ class Async_requester(object):
     def __init__(self):
         self.concurrent = 200
         self.all_blocks = []
-        self.request_data_array = []
+        self.request_data_list = []
         self.q = Queue(self.concurrent * 2)
 
 
@@ -28,7 +28,7 @@ class Async_requester(object):
             except Empty:
                 continue
 
-    def get_multiple_blocks(self, currency, start_block, number_of_blocks):
+    def get_multiple_blocks_old(self, currency, start_block, number_of_blocks):
         start = time.time()
         self.all_blocks = []
         try:
@@ -42,9 +42,9 @@ class Async_requester(object):
         return self.all_blocks
 
     def add_request_data(self, currency, start_block, number_of_blocks):
-        self.request_data_array.append({"currency": currency, "start_block": start_block, "number_of_blocks": number_of_blocks})
+        self.request_data_list.append({"currency": currency, "start_block": start_block, "number_of_blocks": number_of_blocks})
 
-    def get_multiple_blocks_all_currencies(self):
+    def get_multiple_blocks(self):
         start = time.time()
         self.all_blocks = []
 
@@ -58,13 +58,13 @@ class Async_requester(object):
         map(threading.Thread.start, threads)
 
         try:
-            for currency_blocks in self.request_data_array:
+            for currency_blocks in self.request_data_list:
                 for i in range(currency_blocks["number_of_blocks"]):
                     self.q.put({"currency": currency_blocks["currency"], "number": currency_blocks["start_block"] - i})
             self.q.join()
         except KeyboardInterrupt:
             sys.exit(1)
-        self.request_data_array = []
+        self.request_data_list = []
 
         pill2kill.set()
         map(threading.Thread.join, threads)
@@ -76,9 +76,9 @@ class Async_requester(object):
 def main_old():
     ar = Async_requester()
     print(threading.active_count())
-    result = ar.get_multiple_blocks("BTC", 499026, 6)
+    result = ar.get_multiple_blocks_old("BTC", 499026, 6)
     print(threading.active_count())
-    result = ar.get_multiple_blocks("ETH", 4724187, 4*60)
+    result = ar.get_multiple_blocks_old("ETH", 4724187, 4 * 60)
     print(threading.active_count())
     print ("finish")
 
@@ -87,7 +87,7 @@ def main():
     print(threading.active_count())
     ar.add_request_data("BTC", 499026, 6)
     ar.add_request_data("ETH", 4724187, 4*60)
-    ar.get_multiple_blocks_all_currencies()
+    ar.get_multiple_blocks()
     print(threading.active_count())
     print ("finish")
 

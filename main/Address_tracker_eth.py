@@ -14,8 +14,8 @@ class Address_tracker_eth(object):
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
         self.number_of_blocks = 2000
         self.shapeshift_transactions = []
-        self.shapeshift_transactions_possible_deposit_addresses = set()
-        self.shapeshift_output_addresses = ["0xd3273eba07248020bf98a8b560ec1576a612102f",
+        self.possible_deposit_addresses = set()
+        self.shapeshift_withdrawal_addresses = ["0xd3273eba07248020bf98a8b560ec1576a612102f",
                                             "0x3b0bc51ab9de1e5b7b6e34e5b960285805c41736",
                                             "0xeed16856d551569d134530ee3967ec79995e2051",
                                             "0x563b377a956c80d77a7c613a9343699ad6123911"]
@@ -33,12 +33,12 @@ class Address_tracker_eth(object):
                 tx_output = new_transaction["outputs"][0]["address"]
                 if tx_output == self.shapeshift_main_address_ETH:
                     self.shapeshift_transactions.append({"from": tx_input, "timeStamp": block_time})
-                    self.shapeshift_transactions_possible_deposit_addresses.add(tx_input)
-                elif tx_input in self.shapeshift_output_addresses:
+                    self.possible_deposit_addresses.add(tx_input)
+                elif tx_input in self.shapeshift_withdrawal_addresses:
                     new_transaction["is_exchange_deposit"] = False
                     new_transaction["is_exchange_withdrawl"] = True
                     block.append(new_transaction)
-                elif tx_output in self.shapeshift_transactions_possible_deposit_addresses:
+                elif tx_output in self.possible_deposit_addresses:
                     new_transaction["is_exchange_deposit"] = True
                     new_transaction["is_exchange_withdrawl"] = False
                     block.append(new_transaction)
@@ -55,7 +55,8 @@ class Address_tracker_eth(object):
         # Load until last shapeshift transactions 1,5 days older than the starting time
         if not self.shapeshift_transactions:
             endblock_ETH = endblock_ETH + 1
-            while not self.shapeshift_transactions or current_exchange_time > datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"]) - 1.5*24*60*60):
+            while not self.shapeshift_transactions or current_exchange_time > \
+                    datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"]) - 1.5*24*60*60):
                 print("Wait one second. Searching Shapeshift exchanges")
                 time.sleep(1)
                 old_endblock = endblock_ETH
@@ -65,7 +66,7 @@ class Address_tracker_eth(object):
                     for tx in more_transactions:
                         if not(tx["from"] in self.shapeshift_deposit_stop_addresses):
                             self.shapeshift_transactions.append(tx)
-                            self.shapeshift_transactions_possible_deposit_addresses.add(tx["from"])
+                            self.possible_deposit_addresses.add(tx["from"])
             self.shapeshift_transactions = list(reversed(self.shapeshift_transactions))
 
         self.delete_old_deposit_addresses(current_exchange_time)
@@ -75,8 +76,8 @@ class Address_tracker_eth(object):
         for address_transaction in list(self.shapeshift_transactions):
             if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 1.5*24*60*60):
                 self.shapeshift_transactions.remove(address_transaction)
-                if address_transaction["from"] in self.shapeshift_transactions_possible_deposit_addresses:
-                    self.shapeshift_transactions_possible_deposit_addresses.remove(address_transaction["from"])
+                if address_transaction["from"] in self.possible_deposit_addresses:
+                    self.possible_deposit_addresses.remove(address_transaction["from"])
             else:
                 break
 
