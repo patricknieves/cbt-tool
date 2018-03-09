@@ -2,6 +2,7 @@ import os
 import datetime
 from main import Shapeshift_api
 import pandas as pd
+import time
 import numpy as np
 
 
@@ -106,8 +107,9 @@ def compare_exchanges(df_scraped_data, df_found_data):
     # print(df_scraped_data[df_scraped_data["found"] == False].head())
 
     # write result to new csv files
-    df_scraped_data.to_csv('out_scraped_07.02.csv')
-    df_found_data.to_csv('out_tool_07.02.csv')
+    time_now = time.time()
+    df_scraped_data.to_csv('analyzed_scraper_' + time_now + '.csv')
+    df_found_data.to_csv('analyzed_tool_' + time_now + '.csv')
 
     return df_found_data
 
@@ -171,7 +173,7 @@ def find_with_shapeshift_api(df_found_data):
             if tool_row["shapeshift"] == True:
                 found = True
 
-    df_found_data.to_csv('final_analysis_07.02.csv')
-
+    time_now = time.time()
+    df_found_data.to_csv('final_analysis_' + time_now + '.csv')
 
 if __name__ == "__main__": main()

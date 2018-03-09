@@ -165,9 +165,10 @@ class Exchange_finder(object):
                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
                     dollarvalue_to = self.currency_data_dict[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
                     rate_cmc = dollarvalue_from/dollarvalue_to
+                    number_of_outputs = len(transaction_to["outputs"])
+                    # Compare Values with Rates - The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
+                    fee_exchange = Settings.get_exchanger_fee(transaction_to["symbol"], transaction_to["fee"], number_of_outputs)
                     for output_transaction_from in transaction_from["outputs"]:
-                        # Compare Values with Rates - The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
-                        fee_exchange = Settings.get_exchanger_fee(transaction_to["symbol"])
                         expected_output = (output_transaction_from["amount"] * rate_cmc) - fee_exchange # - transaction_to["fee"]
                         for output_transaction_to in transaction_to["outputs"]:
                             if expected_output * Settings.get_rate_lower_bound(transaction_to["symbol"]) < output_transaction_to["amount"] < expected_output * Settings.get_rate_upper_bound(transaction_to["symbol"]):

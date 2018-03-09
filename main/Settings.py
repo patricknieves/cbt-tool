@@ -42,11 +42,14 @@ def get_preparation_range(currency):
     else:
         return
 
-def get_exchanger_fee(currency):
+def get_exchanger_fee(currency, transaction_fee, number_of_outputs):
     if currency == "BTC":
-        return 0.00175
+        if number_of_outputs < 3:
+            return transaction_fee * 1.6
+        else:
+            return transaction_fee * 0.3
     elif currency == "ETH":
-        return 0.01
+        return transaction_fee * 1.8
     else:
         return
 
@@ -58,7 +61,6 @@ def get_scraper_offset(currency):
         return 40
     else:
         return
-
 
 def get_scraper_offset_last_block(currency):
     if currency == "BTC":
