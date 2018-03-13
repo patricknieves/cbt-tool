@@ -23,6 +23,7 @@ def get_shapeshift_exchanges_limitless():
     t.start()
     while True:
         if not t.isAlive():
+            print("Starting finder again!")
             t.start()
         start_time_loop = time.time()
         shapeshift_manager.get_new_exchanges()

@@ -32,7 +32,7 @@ class Address_tracker_eth(object):
                 tx_input = new_transaction["inputs"][0]["address"]
                 tx_output = new_transaction["outputs"][0]["address"]
                 if tx_output == self.shapeshift_main_address_ETH:
-                    self.shapeshift_transactions.append({"from": tx_input, "timeStamp": block_time})
+                    self.shapeshift_transactions.append({"from": tx_input, "delete_time": block_time})
                     self.possible_deposit_addresses.add(tx_input)
                 elif tx_input in self.shapeshift_withdrawal_addresses:
                     new_transaction["is_exchange_deposit"] = False
@@ -65,6 +65,7 @@ class Address_tracker_eth(object):
                 if more_transactions:
                     for tx in more_transactions:
                         if not(tx["from"] in self.shapeshift_deposit_stop_addresses):
+                            tx["delete_time"] = datetime.datetime.utcfromtimestamp(int(tx["timeStamp"]))
                             self.shapeshift_transactions.append(tx)
                             self.possible_deposit_addresses.add(tx["from"])
             self.shapeshift_transactions = list(reversed(self.shapeshift_transactions))
@@ -74,7 +75,8 @@ class Address_tracker_eth(object):
     def delete_old_deposit_addresses(self, current_exchange_time):
         # Delete transactions which are newer than 2 days
         for address_transaction in list(self.shapeshift_transactions):
-            if current_exchange_time < datetime.datetime.utcfromtimestamp(int(address_transaction["timeStamp"]) - 1.5*24*60*60):
+            time_diff = (address_transaction["delete_time"] - current_exchange_time).total_seconds()
+            if time_diff > 1.5*24*60*60:
                 self.shapeshift_transactions.remove(address_transaction)
                 if address_transaction["from"] in self.possible_deposit_addresses:
                     self.possible_deposit_addresses.remove(address_transaction["from"])

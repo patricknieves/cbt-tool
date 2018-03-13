@@ -28,17 +28,17 @@ def search_corresponding_transaction(currency, tx_hash, exchange_id):
 
                 transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
 
-                for tries in range(6):
+                for tries in range(3):
                     if not("block_height" in transaction):
-                        print("Block not confirmed yet. Waiting 10 min")
+                        print("Block not confirmed yet. Waiting 5 min")
                         print("Tx: " + str(tx_hash))
-                        time.sleep(10*60)
+                        time.sleep(5*60)
                         transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
                     else:
                         break
 
                 if not("block_height" in transaction):
-                    print("Block not confirmed in 1 hour. Couldn't get the corresponding Transaction for  " + str(tx_hash))
+                    print("Block not confirmed in 15 minutes. Couldn't get the corresponding Transaction for  " + str(tx_hash))
                     return
 
                 block_nr_to = int(transaction["block_height"])

@@ -4,7 +4,7 @@ from async_requests import Async_requester
 
 
 class Address_manager(object):
-    def __init__(self, current_block_number_dict):
+    def __init__(self):
         self.address_tracker_eth = Address_tracker_eth()
         self.address_tracker_btc = Address_tracker_btc()
 

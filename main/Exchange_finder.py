@@ -27,7 +27,7 @@ class Exchange_finder(object):
         self.currency_data_dict = {}
         self.async_requester = Async_requester()
         self.hours_single_loop = 1
-        self.hours_whole_analysis = 12
+        self.hours_whole_analysis = 8*24
         self.current_exchanges_found_one_block = []
         self.current_exchanges_found = []
         for currency in self.currencies_array:
@@ -137,7 +137,7 @@ class Exchange_finder(object):
                 print("Block Loading Duration: " + str(time.time() - start))
         self.sort_blocks_and_transactions()
 
-    def async_comparing(self, block_from, dollarvalue_from):
+    def async_comparing(self, block_from):
         # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
         dollarvalue_from = self.currency_data_dict[block_from[0]["symbol"]].get_value(block_from[0]["blocktime"])
         threads = list(self.async_search(block_from, dollarvalue_from))
