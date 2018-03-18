@@ -17,7 +17,7 @@ class DB:
             else:
                 cursor.execute(sql, parameters)
             cursor.close()
-        except (AttributeError, MySQLdb.OperationalError):
+        except (AttributeError, MySQLdb.OperationalError, MySQLdb.ProgrammingError):
             print("RECONNECTING TO DB")
             self.connect()
             cursor = self.conn.cursor()
@@ -33,7 +33,7 @@ class DB:
             if parameters:
                 cursor.executemany(sql, parameters)
             cursor.close()
-        except (AttributeError, MySQLdb.OperationalError):
+        except (AttributeError, MySQLdb.OperationalError, MySQLdb.ProgrammingError):
             print("RECONNECTING TO DB")
             self.connect()
             cursor = self.conn.cursor()
@@ -50,7 +50,7 @@ class DB:
                 cursor.execute(sql, parameters)
             result = cursor.fetchall()
             cursor.close()
-        except (AttributeError, MySQLdb.OperationalError):
+        except (AttributeError, MySQLdb.OperationalError, MySQLdb.ProgrammingError):
             print("RECONNECTING TO DB")
             self.connect()
             cursor = self.conn.cursor()
@@ -65,7 +65,7 @@ class DB:
     def commit(self):
         try:
             self.conn.commit()
-        except (AttributeError, MySQLdb.OperationalError):
+        except (AttributeError, MySQLdb.OperationalError, MySQLdb.ProgrammingError):
             print("RECONNECTING TO DB")
             self.connect()
             self.conn.commit()
@@ -141,7 +141,7 @@ def create_table_scraper():
                 "PRIMARY KEY (id))")
 
 def create_table_shapeshift_addresses_btc():
-    dbClass.query("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc ("
+    dbClass.query("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc_new_long_5 ("
                 "id int(11) NOT NULL AUTO_INCREMENT,"
                 "address varchar(120) DEFAULT NULL,"
                 "classification varchar(120) DEFAULT NULL,"
@@ -150,7 +150,7 @@ def create_table_shapeshift_addresses_btc():
 
 def insert_shapeshift_address_btc(shapeshift_address, classification):
     try:
-        dbClass.query("INSERT IGNORE INTO shapeshift_addr_btc (address, classification) VALUES (%s, %s)", (shapeshift_address, classification))
+        dbClass.query("INSERT IGNORE INTO shapeshift_addr_btc_new_long_5 (address, classification) VALUES (%s, %s)", (shapeshift_address, classification))
         dbClass.commit()
     except:
         print("Problem saving Shapeshift Address: "
@@ -301,7 +301,7 @@ def insert_shapeshift_exchange(currency_from,
 def get_all_shapeshift_middle_addresses_btc(classification):
     standardized_set = set([])
     try:
-        results = dbClass.query_get("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
+        results = dbClass.query_get("SELECT * FROM cross_block.shapeshift_addr_btc_new_long_5 WHERE classification = %s", classification)
         for row in results:
             standardized_set.add(row[1])
     except:
