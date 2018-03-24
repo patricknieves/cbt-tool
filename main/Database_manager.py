@@ -26,6 +26,9 @@ class DB:
             else:
                 cursor.execute(sql, parameters)
             cursor.close()
+        except:
+            traceback.print_exc()
+            print ("Error in query. Skipping")
 
     def query_multiple(self, sql, parameters):
         try:
@@ -40,6 +43,9 @@ class DB:
             if parameters:
                 cursor.executemany(sql, parameters)
             cursor.close()
+        except:
+            traceback.print_exc()
+            print ("Error in query. Skipping")
 
     def query_get(self, sql, parameters=None):
         try:
@@ -60,6 +66,10 @@ class DB:
                 cursor.execute(sql, parameters)
             result = cursor.fetchall()
             cursor.close()
+        except:
+            result = None
+            traceback.print_exc()
+            print ("Error in query. Skipping")
         return result
 
     def commit(self):
@@ -69,6 +79,9 @@ class DB:
             print("RECONNECTING TO DB")
             self.connect()
             self.conn.commit()
+        except:
+            traceback.print_exc()
+            print ("Error in query. Skipping")
 
 
 def create_database():
