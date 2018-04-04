@@ -20,7 +20,11 @@ class Address_tracker_eth(object):
                                             "0xeed16856d551569d134530ee3967ec79995e2051",
                                             "0x563b377a956c80d77a7c613a9343699ad6123911"]
         self.shapeshift_deposit_stop_addresses = [self.shapeshift_main_address_ETH,
-                                          "0x876eabf441b2ee5b5b0554fd502a8e0600950cfa"]
+                                          "0x876eabf441b2ee5b5b0554fd502a8e0600950cfa", #Bitfinex
+                                          "0x32be343b94f860124dc4fee278fdcbd38c102d88", #Poloniex
+                                          "0xfbb1b73c4f0bda4f67dca266ce6ef42f520fbb98", #Bittrex
+                                          "0x3f5ce5fbfe3e9af3971dd833d26ba9b5c936f0be" #Binance
+                                          ]
 
     def filter_block(self, new_transactions):
         block = []
@@ -31,7 +35,7 @@ class Address_tracker_eth(object):
             for new_transaction in new_transactions:
                 tx_input = new_transaction["inputs"][0]["address"]
                 tx_output = new_transaction["outputs"][0]["address"]
-                if tx_output == self.shapeshift_main_address_ETH:
+                if tx_output == self.shapeshift_main_address_ETH and not(tx_input in self.shapeshift_deposit_stop_addresses):
                     self.shapeshift_transactions.append({"from": tx_input, "delete_time": block_time})
                     self.possible_deposit_addresses.add(tx_input)
                 elif tx_input in self.shapeshift_withdrawal_addresses:

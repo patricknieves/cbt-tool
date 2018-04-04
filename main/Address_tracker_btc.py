@@ -8,18 +8,34 @@ from async_requests import Async_requester
 class Address_tracker_btc(object):
     def __init__(self):
         #self.shapeshift_main_addresses = set(Database_manager.get_all_shapeshift_addresses_btc())
-        self.shapeshift_main_addresses = ["1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG",
-                                     "1LASN6ra8dwR2EjAfCPcghXDxtME7a89Hk",
-                                     "1BvTQTP5PJVCEz7dCU2YxgMskMxxikSruM",
-                                     "1jhbBbDRdezEZ5tSsHZwuUg85Hhf4rWuz",
-                                     "3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B",
-                                     "1HFyPNX9gEvGHNCR34hkiseTLj2MXmqYr7",
-                                     "1BiX4SkXd97AvjvTbGN1V9ykTtYf9EVXN5",
-                                     "3N1f4Hv4dmMkFCyvAqu3M4wcQQYNJvs232",
-                                     "17JnGQUbpqosaFZ7P3ywHQj6G75kERBSXa",
-                                     "1BngmLiuiXbzSNpwQ9kEbMy1KZ6xj5Jxs4"]
-        #1MAXqJByJFgpAwx6RLnTBr1Dcw1yk8eTR3
-        #14Yg5Ha6b49DqjvpXXoykEN7xSEFKP26rF
+
+        self.shapeshift_main_addresses = [
+                                     "1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG", #Bittrex
+                                     "1LASN6ra8dwR2EjAfCPcghXDxtME7a89Hk", #Bitfinex
+                                     "1BvTQTP5PJVCEz7dCU2YxgMskMxxikSruM", #Poloniex
+                                     "17NqGW6HY3f2LY7wFkEDn9yXpq8LWMRMEQ", #Binance #new
+                                     "3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B", #Storage Address
+                                    "1E57TDxSju3AEecoUjjQKkbGWAitP12znn", #Unkonwn #feb #new
+                                    "1jhbBbDRdezEZ5tSsHZwuUg85Hhf4rWuz", #Unknown
+                                    "1HFyPNX9gEvGHNCR34hkiseTLj2MXmqYr7",
+                                    "1BiX4SkXd97AvjvTbGN1V9ykTtYf9EVXN5",
+                                    "3N1f4Hv4dmMkFCyvAqu3M4wcQQYNJvs232", #feb # connections:1
+                                    "17JnGQUbpqosaFZ7P3ywHQj6G75kERBSXa", # connetions: 0
+                                    "1BngmLiuiXbzSNpwQ9kEbMy1KZ6xj5Jxs4" #feb
+                                     ]
+        #self.shapeshift_main_addresses = Settings.get_main_addresses()
+
+        #"1E57TDxSju3AEecoUjjQKkbGWAitP12znn", #Unkonwn #feb
+        #"1jhbBbDRdezEZ5tSsHZwuUg85Hhf4rWuz", #Unknown
+
+        #"1HFyPNX9gEvGHNCR34hkiseTLj2MXmqYr7",
+        #"1BiX4SkXd97AvjvTbGN1V9ykTtYf9EVXN5",
+        #"17JnGQUbpqosaFZ7P3ywHQj6G75kERBSXa",
+        #"1By2vSBudu7fSt7aeAR5tJza6HiGUhVcdJ", #feb
+        #"3N1f4Hv4dmMkFCyvAqu3M4wcQQYNJvs232", #feb
+        #"1BngmLiuiXbzSNpwQ9kEbMy1KZ6xj5Jxs4" #feb
+
+        #"1By2vSBudu7fSt7aeAR5tJza6HiGUhVcdJ", #feb #not a SS address - unknown inputs
 
         #self. shapeshift_middle_addresses = set([])
         #self. shapeshift_single_addresses = set([])
@@ -56,8 +72,9 @@ class Address_tracker_btc(object):
                         exchange_transaction["is_exchange_withdrawl"] = False
 
                     # Delete single addresses after analysing transaction, because no more needed
-                    if tx_output["address"] in self.shapeshift_single_addresses:
-                        self.shapeshift_single_addresses.remove(tx_output["address"])
+                    for tx_output_delete in exchange_transaction["outputs"]:
+                        if tx_output_delete["address"] in self.shapeshift_single_addresses:
+                            self.shapeshift_single_addresses.remove(tx_output_delete["address"])
                     return exchange_transaction
             # If nothing found in outputs, check if Shapeshift address in inputs
             for tx_input in exchange_transaction["inputs"]:
@@ -87,9 +104,10 @@ class Address_tracker_btc(object):
                             if not(tx_input["address"] in self.shapeshift_stop_addresses):
                                 print("Adding new SINGLE Address: " + str(tx_input["address"]))
                                 self.shapeshift_single_addresses.add(tx_input["address"])
-                if tx_output["address"] in self.shapeshift_single_addresses:
-                    print("Deleting SINGLE Address: " + str(tx_output["address"]))
-                    self.shapeshift_single_addresses.remove(tx_output["address"])
+                for tx_output_delete in exchange_transaction["outputs"]:
+                    if tx_output_delete["address"] in self.shapeshift_single_addresses:
+                        print("Deleting SINGLE Address: " + str(tx_output["address"]))
+                        self.shapeshift_single_addresses.remove(tx_output_delete["address"])
                 return
         # If nothing found in outputs, check if Shapeshift address in inputs
         for tx_input in exchange_transaction["inputs"]:
@@ -133,7 +151,9 @@ def main():
     Database_manager.create_table_shapeshift_addresses_btc()
     address_tracker = Address_tracker_btc()
     address_tracker.prepare_addresses(511557)
+
     print("Duration: " + str(time.time() - start_time))
     print("finish")
+
 
 if __name__ == "__main__": main()

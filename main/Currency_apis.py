@@ -156,22 +156,6 @@ def standardize(currency, json):
     return standardized_dict
 
 
-def get_fee_BTC(tx_hash):
-    Tor.change_ip()
-    for attempt in range(5):
-        try:
-            #fee_from = requests.get("https://chain.so/api/v2/tx/BTC/" + str(tx_hash)).json()["data"]["fee"]
-            fee_from = requests.get("https://api.blockcypher.com/v1/btc/main/txs/" + str(tx_hash)).json()["fees"] / 100000000
-        except:
-            print ("Wait a minute. Loading BTC Fee")
-            time.sleep(60)
-            Tor.change_ip()
-        else:
-            return fee_from
-    else:
-        traceback.print_exc()
-        sys.exit("Counldn't get fee for BTC: " + str(tx_hash))
-
 def get_transactions_for_address(currency, address):
     Tor.change_ip()
     for attempt in range(5):
@@ -195,7 +179,7 @@ def get_transactions_for_address(currency, address):
         print("Couldn't get transactions from Etherscan")
 
 
-def get_transactions_for_address_with_bounds(etherscan_key, shapeshift_main_address_ETH, startblock, endblock):
+def get_transactions_for_eth_address(etherscan_key, shapeshift_main_address_ETH, startblock, endblock):
     Tor.change_ip()
     for attempt in range(5):
         try:
