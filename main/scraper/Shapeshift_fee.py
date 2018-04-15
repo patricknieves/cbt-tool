@@ -8,7 +8,7 @@ class Shapeshift_fee(object):
         self.shapeshift_fee_data = Shapeshift_api.get_fees_shapeshift()
         self.last_update_time = time.time()
 
-    def get_shapeshift_fees(self, currency):
+    def get_shapeshift_fee(self, currency):
         current_time = time.time()
         # Update data every 30 min
         if (current_time - self.last_update_time) > 30*60:

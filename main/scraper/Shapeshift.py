@@ -7,10 +7,10 @@ from main import Database_manager, Shapeshift_api
 class Shapeshift(object):
 
     def __init__(self):
-        self.shapeshift_data = Shapeshift_fee()
+        self.shapeshift_fee_data = Shapeshift_fee()
         self.all_exchanges = []
         self.duration = 30
-        self.cmc = Coinmarketcap()
+        self.currency_data = Coinmarketcap()
 
     def get_new_exchanges(self):
         # Request last 50 Transactions from Shapeshift
@@ -36,9 +36,9 @@ class Shapeshift(object):
                 # Write to DB if exchange older (1 min) than the last new retrieved exchange
                 if (exchange["timestamp"] + 60 < new_exchanges[-1]["timestamp"]):
                     # Get dollar rate and current Shapeshift fees
-                    exchange["dollarvalue_from"] = self.cmc.get_dollarvalue(exchange["curIn"])
-                    exchange["dollarvalue_to"] = self.cmc.get_dollarvalue(exchange["curOut"])
-                    exchange["fee_exchange"] = self.shapeshift_data.get_shapeshift_fees(exchange["curOut"])
+                    exchange["dollarvalue_from"] = self.currency_data.get_dollarvalue(exchange["curIn"])
+                    exchange["dollarvalue_to"] = self.currency_data.get_dollarvalue(exchange["curOut"])
+                    exchange["fee_exchange"] = self.shapeshift_fee_data.get_shapeshift_fee(exchange["curOut"])
                     time_exchange = datetime.datetime.utcfromtimestamp(exchange["timestamp"]).strftime('%Y-%m-%d %H:%M:%S')
                     Database_manager.insert_shapeshift_exchange(exchange["curIn"],
                                                                 exchange["curOut"],

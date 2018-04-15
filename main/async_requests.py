@@ -12,19 +12,19 @@ class Async_requester(object):
     def __init__(self):
         self.concurrent = 200
         self.all_blocks = []
-        self.request_data_list = []
-        self.q = Queue(self.concurrent * 2)
+        self.request_data = []
+        self.queue = Queue(self.concurrent * 2)
 
 
-    def doWork(self, stop_event):
+    def do_work(self, stop_event):
         while not stop_event.wait(0):
             try:
-                block_info = self.q.get(timeout=0)
+                block_info = self.queue.get(timeout=0)
                 if block_info:
                     block = Currency_apis.get_block_by_number(block_info["currency"], block_info["number"])
                     if block:
                         self.all_blocks.append(block)
-                    self.q.task_done()
+                    self.queue.task_done()
             except Empty:
                 continue
 
@@ -33,8 +33,8 @@ class Async_requester(object):
         self.all_blocks = []
         try:
             for i in range(number_of_blocks):
-                self.q.put({"currency": currency, "number": start_block - i})
-            self.q.join()
+                self.queue.put({"currency": currency, "number": start_block - i})
+            self.queue.join()
         except KeyboardInterrupt:
             sys.exit(1)
         print("Duration: " + str(time.time() - start))
@@ -42,7 +42,7 @@ class Async_requester(object):
         return self.all_blocks
 
     def add_request_data(self, currency, start_block, number_of_blocks):
-        self.request_data_list.append({"currency": currency, "start_block": start_block, "number_of_blocks": number_of_blocks})
+        self.request_data.append({"currency": currency, "start_block": start_block, "number_of_blocks": number_of_blocks})
 
     def get_multiple_blocks(self):
         start = time.time()
@@ -51,20 +51,20 @@ class Async_requester(object):
         pill2kill = threading.Event()
         def thread_gen(pill2kill):
             for i in range(self.concurrent):
-                t = Thread(target=self.doWork, args=(pill2kill,))
+                t = Thread(target=self.do_work, args=(pill2kill,))
                 t.daemon = True
                 yield t
         threads = list(thread_gen(pill2kill))
         map(threading.Thread.start, threads)
 
         try:
-            for currency_blocks in self.request_data_list:
+            for currency_blocks in self.request_data:
                 for i in range(currency_blocks["number_of_blocks"]):
-                    self.q.put({"currency": currency_blocks["currency"], "number": currency_blocks["start_block"] - i})
-            self.q.join()
+                    self.queue.put({"currency": currency_blocks["currency"], "number": currency_blocks["start_block"] - i})
+            self.queue.join()
         except KeyboardInterrupt:
             sys.exit(1)
-        self.request_data_list = []
+        self.request_data = []
 
         pill2kill.set()
         map(threading.Thread.join, threads)

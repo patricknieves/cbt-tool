@@ -16,29 +16,29 @@ from threading import Thread
 class Exchange_finder(object):
 
     def __init__(self, currencies_array, current_block_number_dict=None):
-        self.currencies_array = currencies_array
-        self.current_block_number_dict = self.get_current_block_numbers(currencies_array) if current_block_number_dict is None \
+        self.currencies = currencies_array
+        self.current_block_numbers = self.get_current_block_numbers() if current_block_number_dict is None \
             else current_block_number_dict
         # Start Address Manager with current block numbers
         self.address_manager = Address_manager()
         self.blocks_from = []
         self.transactions_to = []
-        self.time_newest_block_dict = {}
-        self.currency_data_dict = {}
+        self.newest_block_times = {}
+        self.currency_data = {}
         self.async_requester = Async_requester()
         self.hours_single_loop = 1
         self.hours_whole_analysis = 8*24
         self.current_exchanges_found_one_block = []
         self.current_exchanges_found = []
-        for currency in self.currencies_array:
+        for currency in self.currencies:
             # Get exchange rate data for every currency
-            self.currency_data_dict[currency] = Currency_data(currency, "USD")
+            self.currency_data[currency] = Currency_data(currency, "USD")
 
     def find_exchanges(self):
         start_preparation = time.time()
 
         # Perform Shapeshift Address recognition for BTC 700 Blocks before starting point
-        self.address_manager.prepare(self.current_block_number_dict)
+        self.address_manager.prepare(self.current_block_numbers)
 
         # Load first blocks
         self.load_first_blocks()
@@ -74,7 +74,7 @@ class Exchange_finder(object):
                     # Delete all withdrawal transactions which won't be needed anymore
                     self.delete_old_withdrawals(block_from)
                     # Asyncronous comparing
-                    self.async_comparing(block_from)
+                    self.async_compare(block_from)
                     # Remove block
                     self.blocks_from.remove(block_from)
             # Save all found exchanges in the DB
@@ -84,15 +84,42 @@ class Exchange_finder(object):
             counter = counter + 1
             print("Duration for Loop " + str(counter) + ": " + str(time.time() - start_loop))
 
+    def find_exchanges_nice_format_DELETE(self):
+
+        #Preparation
+        self.address_manager.prepare(self.current_block_numbers)
+        self.load_first_blocks()
+        range_to_analyze = self.hours_whole_analysis * (60 * 60)
+        analysis_time_range = self.hours_single_loop * (60 * 60)
+        start_time = self.get_min_blocktime()
+        current_search_time = start_time
+
+        #Search
+        while start_time - current_search_time < range_to_analyze:
+            current_search_time = current_search_time - analysis_time_range
+            self.load_blocks(current_search_time)
+            for block_from in list(self.blocks_from):
+                current_block_time = block_from[0]["blocktime"]
+                newest_transaction_time = self.transactions_to[0]["time"]
+                if current_block_time < datetime.datetime.utcfromtimestamp(current_search_time):
+                    break
+                elif current_block_time > newest_transaction_time:
+                    self.blocks_from.remove(block_from)
+                else:
+                    self.delete_old_withdrawals(block_from)
+                    self.async_compare(block_from)
+                    self.blocks_from.remove(block_from)
+            self.save_found_exchanges()
+
     def load_first_blocks(self):
         while not self.blocks_from:
-            for currency in self.currencies_array:
-                self.async_requester.add_request_data(currency, self.current_block_number_dict[currency], 1)
-                self.current_block_number_dict[currency] = self.current_block_number_dict[currency] - 1
+            for currency in self.currencies:
+                self.async_requester.add_request_data(currency, self.current_block_numbers[currency], 1)
+                self.current_block_numbers[currency] = self.current_block_numbers[currency] - 1
             # load blocks
             new_blocks = self.async_requester.get_multiple_blocks()
             # Pass blocks to filtering
-            self.filter_all_and_save(new_blocks)
+            self.async_filter_and_save(new_blocks)
             # Sort
             self.sort_blocks_and_transactions()
 
@@ -121,26 +148,32 @@ class Exchange_finder(object):
         load_more = True
         while load_more:
             load_more = False
-            for currency in self.currencies_array:
-                if currency not in self.time_newest_block_dict or self.time_newest_block_dict[currency] > datetime.datetime.utcfromtimestamp(current_search_time):
+            for currency in self.currencies:
+                if currency not in self.newest_block_times or self.newest_block_times[currency] > datetime.datetime.utcfromtimestamp(current_search_time):
                     # mark that has to be loaded
                     number_of_blocks = self.hours_single_loop * Settings.get_block_number_for_hour(currency)
-                    self.async_requester.add_request_data(currency, self.current_block_number_dict[currency], number_of_blocks)
-                    self.current_block_number_dict[currency] = self.current_block_number_dict[currency] - number_of_blocks
+                    self.async_requester.add_request_data(currency, self.current_block_numbers[currency], number_of_blocks)
+                    self.current_block_numbers[currency] = self.current_block_numbers[currency] - number_of_blocks
                     load_more = True
             if load_more:
                 start = time.time()
                 # load blocks
                 new_blocks = self.async_requester.get_multiple_blocks()
                 # Pass blocks to filtering
-                self.filter_all_and_save(new_blocks)
+                self.async_filter_and_save(new_blocks)
                 print("Block Loading Duration: " + str(time.time() - start))
         self.sort_blocks_and_transactions()
 
-    def async_comparing(self, block_from):
+    def async_compare(self, block_from):
+
+        def async_search(block_from, dollarvalue_from):
+            for transaction_from in block_from:
+                t = Thread(target=self.compare, args=(transaction_from, dollarvalue_from))
+                yield t
+
         # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
-        dollarvalue_from = self.currency_data_dict[block_from[0]["symbol"]].get_value(block_from[0]["blocktime"])
-        threads = list(self.async_search(block_from, dollarvalue_from))
+        dollarvalue_from = self.currency_data[block_from[0]["symbol"]].get_value(block_from[0]["blocktime"])
+        threads = list(async_search(block_from, dollarvalue_from))
         map(threading.Thread.start, threads)
         map(threading.Thread.join, threads)
         # Sort by address and save to final list
@@ -148,10 +181,7 @@ class Exchange_finder(object):
         self.current_exchanges_found.extend(self.current_exchanges_found_one_block)
         self.current_exchanges_found_one_block = []
 
-    def async_search(self, block_from, dollarvalue_from):
-        for transaction_from in block_from:
-            t = Thread(target=self.compare, args=(transaction_from, dollarvalue_from))
-            yield t
+
 
     def compare(self, transaction_from, dollarvalue_from):
         for transaction_to in list(self.transactions_to):
@@ -160,10 +190,10 @@ class Exchange_finder(object):
                 # transaction takes at least half min
                 if exchange_time_diff < Settings.get_exchange_time_lower_bound(transaction_to["symbol"]):
                     break
-                # Searching for corresponding transaction not older than X min
+                # Searching for correspcomonding transaction not older than X min
                 elif exchange_time_diff < Settings.get_exchange_time_upper_bound(transaction_to["symbol"]):
                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
-                    dollarvalue_to = self.currency_data_dict[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
+                    dollarvalue_to = self.currency_data[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
                     rate_cmc = dollarvalue_from/dollarvalue_to
                     number_of_outputs = len(transaction_to["outputs"])
                     # Compare Values with Rates - The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
@@ -200,21 +230,21 @@ class Exchange_finder(object):
         self.blocks_from.sort(key=lambda x: x[0]["blocktime"], reverse=True)
         self.transactions_to.sort(key=lambda x: x["time"], reverse=True)
 
-    def filter_all_and_save(self, new_blocks):
+    def async_filter_and_save(self, new_blocks):
         def start_threads():
-            for currency in self.currencies_array:
+            for currency in self.currencies:
                 exchanges = [block for block in new_blocks if currency == block[0]["symbol"]]
-                t = Thread(target=self.filter_one_currency_and_save, args=(exchanges,))
+                t = Thread(target=self.filter_and_save, args=(exchanges,))
                 yield t
         threads = list(start_threads())
         map(threading.Thread.start, threads)
         map(threading.Thread.join, threads)
 
-    def filter_one_currency_and_save(self, new_blocks_one_currency):
-        for block in new_blocks_one_currency:
+    def filter_and_save(self, new_blocks):
+        for block in new_blocks:
             new_filtered_block = self.address_manager.filter_block_and_save_addresses(block)
             if new_filtered_block:
-                self.time_newest_block_dict[new_filtered_block[0]["symbol"]] = new_filtered_block[0]["blocktime"]
+                self.newest_block_times[new_filtered_block[0]["symbol"]] = new_filtered_block[0]["blocktime"]
                 transactions_from = []
                 for new_transaction in new_filtered_block:
                     if new_transaction["is_exchange_deposit"]:
@@ -224,9 +254,9 @@ class Exchange_finder(object):
                 if transactions_from:
                     self.blocks_from.append(transactions_from)
 
-    def get_current_block_numbers (self, currencies_array):
-        for currency in currencies_array:
+    def get_current_block_numbers(self):
+        for currency in self.currencies:
             # Get current block numbers
             current_block_number = Currency_apis.get_last_block_number(currency)
-            self.current_block_number_dict[currency] = current_block_number
+            self.current_block_numbers[currency] = current_block_number
             print current_block_number

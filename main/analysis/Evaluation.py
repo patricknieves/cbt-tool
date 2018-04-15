@@ -91,7 +91,7 @@ def load_scraped_data():
 def load_tool_data():
     # Load data found by tool
     #file = 'local_exchanges_07.02.csv'
-    file = 'tool_new_4.csv'
+    file = 'tool_new_15.csv'
     df_found_data = pd.read_csv(file)
     df_found_data['time_block_from'] = pd.to_datetime(df_found_data['time_block_from'])
     df_found_data["shapeshift"] = False
@@ -120,6 +120,8 @@ def compare(df_scraped_data, df_found_data):
 
     print(len(df_scraped_data[df_scraped_data["found"] == True]))
     print(len(df_scraped_data[df_scraped_data["found"] == False]))
+    print(len(df_found_data[df_found_data["shapeshift"] == True]))
+    print(len(df_found_data[df_found_data["shapeshift"] == False]))
 
     # write result to new csv files
     time_now = time.time()

@@ -1,5 +1,11 @@
-import Corresponding_tx
+from __future__ import division
 from main import Currency_apis, Database_manager, Shapeshift_api, Settings
+import requests
+import traceback
+import datetime
+import time
+from main import Database_manager
+from main import Tor
 
 
 class Data_retriever(object):
@@ -59,11 +65,69 @@ class Data_retriever(object):
                                                                                 exchange["id"]
                                                                                 )
 
-                                    Corresponding_tx.search_corresponding_transaction(exchange_details["outgoingType"],
-                                                                                      exchange_details["transaction"],
-                                                                                      exchange["id"])
+                                    self.search_withdrawal_data(exchange_details, exchange)
                                     self.exchanges.remove(exchange)
                                     # break both loops
                                     return
             elif block_time_diff >= 10*60:
                 self.exchanges.remove(exchange)
+
+    def search_withdrawal_data(self, exchange_details, exchange):
+        currency = exchange_details["outgoingType"]
+        tx_hash =  exchange_details["transaction"]
+        exchange_id = exchange["id"]
+
+        Tor.change_ip()
+        for attempt in range(5):
+            try:
+                if currency == "ETH":
+                    transaction = requests.get("https://api.infura.io/v1/jsonrpc/mainnet/eth_getTransactionByHash?params=%5B%22" + str(tx_hash) + "%22%5D&token=Wh9YuEIhi7tqseXn8550").json()["result"]
+                    block = requests.get("https://api.infura.io/v1/jsonrpc/mainnet/eth_getBlockByNumber?params=%5B%22" + str(transaction["blockNumber"]) + "%22%2C%20true%5D&token=Wh9YuEIhi7tqseXn8550").json()["result"]
+                    time_to = datetime.datetime.utcfromtimestamp(int(block["timestamp"], 16)).strftime('%Y-%m-%d %H:%M:%S')
+                    time_block_to = time_to
+                    fee_to = int(transaction["gas"], 16)*(int(transaction["gasPrice"], 16) / 1E+18)
+                    block_nr_to = int(transaction["blockNumber"], 16)
+                    Database_manager.update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, block_nr_to, exchange_id)
+                elif currency == "BTC":
+                    transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
+
+                    for tries in range(3):
+                        if not("block_height" in transaction):
+                            print("Block not confirmed yet. Waiting 5 min")
+                            print("Tx: " + str(tx_hash))
+                            time.sleep(5*60)
+                            transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
+                        else:
+                            break
+
+                    if not("block_height" in transaction):
+                        print("Block not confirmed in 15 minutes. Couldn't get the corresponding Transaction for  " + str(tx_hash))
+                        return
+
+                    block_nr_to = int(transaction["block_height"])
+                    time_to = datetime.datetime.utcfromtimestamp(transaction["time"]).strftime('%Y-%m-%d %H:%M:%S')
+                    block = requests.get("https://blockchain.info/de/block-height/" + (str(block_nr_to)) + "?format=json").json()["blocks"][0]
+                    time_block_to = datetime.datetime.utcfromtimestamp(block["time"])
+
+                    # Calculate fee
+                    input_value = 0
+                    output_value = 0
+                    for tx_input in transaction["inputs"]:
+                        if "prev_out" in tx_input and tx_input["prev_out"]["value"] != 0 and "addr" in tx_input["prev_out"]:
+                            input_value = input_value + tx_input["prev_out"]["value"] / 100000000
+                    for tx_output in transaction["out"]:
+                        if tx_output["value"] != 0 and "addr" in tx_output:
+                            output_value = output_value + tx_output["value"] / 100000000
+                    fee_to = input_value - output_value
+                    # Don't save if coinbase transaction
+                    if input_value != 0:
+                        Database_manager.update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, block_nr_to, exchange_id)
+            except:
+                print ("Wait half a minute")
+                time.sleep(30)
+                Tor.change_ip()
+            else:
+                break
+        else:
+            traceback.print_exc()
+            print("Couldn't get the corresponding Transaction for " + str(currency))

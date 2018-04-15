@@ -1,14 +1,14 @@
 from main import Database_manager
 import time
-import Finder
 from threading import Thread
 from Shapeshift import Shapeshift
+from Data_retriever import Data_retriever
 
 
 def main():
     setup_db()
     #Database_manager.delete_all_scraper_data()
-    get_shapeshift_exchanges_limitless()
+    get_shapeshift_exchanges()
 
 
 def setup_db():
@@ -17,9 +17,9 @@ def setup_db():
     Database_manager.create_table_scraper()
 
 
-def get_shapeshift_exchanges_limitless():
+def get_shapeshift_exchanges():
     shapeshift_manager = Shapeshift()
-    t = Thread(target=Finder.find, args=())
+    t = Thread(target=find_blockchain_data, args=())
     t.start()
     while True:
         if not t.isAlive():
@@ -34,41 +34,23 @@ def get_shapeshift_exchanges_limitless():
             time.sleep(duration_to_wait - elapsed_time_loop)
 
 
-def get_shapeshift_exchanges(runtime_in_sec):
-    shapeshift_manager = Shapeshift()
-    start_time = time.time()
-    elapsed_time = 0
-    # Run a whole day
-    while elapsed_time < runtime_in_sec:
-        start_time_loop = time.time()
-        shapeshift_manager.get_new_exchanges()
-        duration_to_wait = shapeshift_manager.duration.total_seconds()/2
-        elapsed_time_loop = time.time() - start_time_loop
-        if elapsed_time_loop < duration_to_wait:
-            print ("Done! Wait " + str(duration_to_wait - elapsed_time_loop) + " seconds")
-            time.sleep(duration_to_wait - elapsed_time_loop)
+def find_blockchain_data():
+    btc_finder = Data_retriever("BTC")
+    eth_finder = Data_retriever("ETH")
+    while True:
+        start_time = time.time()
+
+        print ("Searching for BTC exchanges...")
+        btc_finder.prepare()
+        btc_finder.find_exchanges()
+        print ("Searching for ETH exchanges...")
+        eth_finder.prepare()
+        eth_finder.find_exchanges()
+
         elapsed_time = time.time() - start_time
-
-
-def get_shapeshift_exchanges_instant(runtime_in_sec):
-    shapeshift_manager = Shapeshift()
-    start_time = time.time()
-    elapsed_time = 0
-
-    # Run a whole day
-    while elapsed_time < runtime_in_sec:
-        start_time_loop = time.time()
-        shapeshift_manager.get_new_exchanges()
-        duration_to_wait = shapeshift_manager.duration.total_seconds()/2
-        t = Thread(target=Finder.find_exchange_data, args=())
-        #t = Thread(target=find_exchange_data, args=(new_exchanges,))
-        t.start()
-        elapsed_time_loop = time.time() - start_time_loop
-        if elapsed_time_loop < duration_to_wait:
-            print ("Done! Wait " + str(duration_to_wait - elapsed_time_loop) + " seconds")
-            time.sleep(duration_to_wait - elapsed_time_loop)
-        elapsed_time = time.time() - start_time
-
+        if elapsed_time < 30*60:
+            print("Waiting 30 min for next loop")
+            time.sleep(30*60)
 
 
 if __name__ == "__main__": main()

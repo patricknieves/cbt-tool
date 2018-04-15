@@ -8,9 +8,9 @@ class Address_manager(object):
         self.address_tracker_eth = Address_tracker_eth()
         self.address_tracker_btc = Address_tracker_btc()
 
-    def prepare(self, current_block_number_dict):
-        self.address_tracker_eth.prepare_addresses(current_block_number_dict["ETH"])
-        #self.address_tracker_btc.prepare_addresses(current_block_number_dict["BTC"])
+    def prepare(self, current_block_numbers):
+        self.address_tracker_eth.prepare_addresses(current_block_numbers["ETH"])
+        #self.address_tracker_btc.prepare_addresses(current_block_numbers["BTC"])
 
     def filter_block_and_save_addresses(self, block):
         if block:

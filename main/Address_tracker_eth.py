@@ -48,24 +48,24 @@ class Address_tracker_eth(object):
                     block.append(new_transaction)
         return block
 
-    def prepare_addresses(self, endblock_ETH):
+    def prepare_addresses(self, current_block_nr):
         # Load first block and get time
         block = []
         counter = 0
         while not block:
-            block = Currency_apis.get_block_by_number("ETH", endblock_ETH - counter)
+            block = Currency_apis.get_block_by_number("ETH", current_block_nr - counter)
             counter = counter + 1
         current_exchange_time = block[0]["blocktime"]
         # Load until last shapeshift transactions 1,5 days older than the starting time
         if not self.shapeshift_transactions:
-            endblock_ETH = endblock_ETH + 1
+            current_block_nr = current_block_nr + 1
             while not self.shapeshift_transactions or current_exchange_time > \
                     datetime.datetime.utcfromtimestamp(int(self.shapeshift_transactions[-1]["timeStamp"]) - 1.5*24*60*60):
                 print("Wait one second. Searching Shapeshift exchanges")
                 time.sleep(1)
-                old_endblock = endblock_ETH
-                endblock_ETH = endblock_ETH + Settings.get_preparation_range("ETH")
-                more_transactions = self.get_transactions_for_address(old_endblock, endblock_ETH)
+                old_block_nr = current_block_nr
+                current_block_nr = current_block_nr + Settings.get_preparation_range("ETH")
+                more_transactions = self.get_transactions_for_address(old_block_nr, current_block_nr)
                 if more_transactions:
                     for tx in more_transactions:
                         if not(tx["from"] in self.shapeshift_deposit_stop_addresses):
@@ -87,15 +87,15 @@ class Address_tracker_eth(object):
             else:
                 break
 
-    def get_transactions_for_address(self, startblock, endblock):
+    def get_transactions_for_address(self, start_block_nr, end_block_nr):
         Tor.change_ip()
         for attempt in range(5):
             try:
                 transactions = requests.get("http://api.etherscan.io/api?module=account&"
                                             "action=txlist&" +
                                             "address=" + self.shapeshift_main_address_ETH +
-                                            "&startblock=" + str(startblock) +
-                                            "&endblock=" + str(endblock) +
+                                            "&startblock=" + str(start_block_nr) +
+                                            "&endblock=" + str(end_block_nr) +
                                             "&sort=desc" +
                                             "&apikey=" + self.etherscan_key).json()["result"]
             except:
