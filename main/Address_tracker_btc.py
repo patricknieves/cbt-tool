@@ -130,6 +130,13 @@ class Address_tracker_btc(object):
                 block.append(transaction)
         return block
 
+    def save_all_addresses(self):
+        Database_manager.create_table_shapeshift_addresses_btc_end()
+        for address in self.shapeshift_middle_addresses:
+            Database_manager.insert_shapeshift_address_btc_end(address, "middle")
+        for address in self.shapeshift_single_addresses:
+            Database_manager.insert_shapeshift_address_btc_end(address, "single")
+
 def main():
     start_time = time.time()
     Database_manager.initialize_db()

@@ -27,7 +27,8 @@ class Exchange_finder(object):
         self.currency_data = {}
         self.async_requester = Async_requester()
         self.hours_single_loop = 1
-        self.hours_whole_analysis = 8*24
+        #self.hours_whole_analysis = 273*24 # bis zum 1.Juni 2017
+        self.hours_whole_analysis = 80*24
         self.current_exchanges_found_one_block = []
         self.current_exchanges_found = []
         for currency in self.currencies:
@@ -83,6 +84,12 @@ class Exchange_finder(object):
             # For Test
             counter = counter + 1
             print("Duration for Loop " + str(counter) + ": " + str(time.time() - start_loop))
+
+        #Delete this when project finished?
+        Address_manager.save_addresses_end()
+        print("Last Block ETH:" + self.current_block_numbers["ETH"])
+        print("Last Block BTC:" + self.current_block_numbers["BTC"])
+
 
     def find_exchanges_nice_format_DELETE(self):
 

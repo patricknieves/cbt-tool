@@ -20,3 +20,6 @@ class Address_manager(object):
             elif currency == "ETH":
                 return self.address_tracker_eth.filter_block(block)
         return []
+
+    def save_addresses_end(self):
+        self.address_tracker_btc.save_all_addresses()

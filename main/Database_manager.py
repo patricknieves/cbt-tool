@@ -171,6 +171,23 @@ def insert_shapeshift_address_btc(shapeshift_address, classification):
         traceback.print_exc()
         #db.rollback()
 
+def create_table_shapeshift_addresses_btc_end():
+    dbClass.query("CREATE TABLE IF NOT EXISTS shapeshift_addr_btc_end ("
+                  "id int(11) NOT NULL AUTO_INCREMENT,"
+                  "address varchar(120) DEFAULT NULL,"
+                  "classification varchar(120) DEFAULT NULL,"
+                  "PRIMARY KEY (id),"
+                  "UNIQUE INDEX address_UNIQUE (address ASC))")
+
+def insert_shapeshift_address_btc_end(shapeshift_address, classification):
+    try:
+        dbClass.query("INSERT IGNORE INTO shapeshift_addr_btc_end (address, classification) VALUES (%s, %s)", (shapeshift_address, classification))
+        dbClass.commit()
+    except:
+        print("Problem saving Shapeshift Address: "
+              "Address: " + str(shapeshift_address))
+        traceback.print_exc()
+
 def insert_exchange(currency_from,
                     currency_to,
                     amount_from,
