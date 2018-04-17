@@ -314,7 +314,7 @@ def insert_shapeshift_exchange(currency_from,
 def get_all_shapeshift_middle_addresses_btc(classification):
     standardized_set = set([])
     try:
-        results = dbClass.query_get("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", classification)
+        results = dbClass.query_get("SELECT * FROM cross_block.shapeshift_addr_btc WHERE classification = %s", (classification,))
         for row in results:
             standardized_set.add(row[1])
     except:
