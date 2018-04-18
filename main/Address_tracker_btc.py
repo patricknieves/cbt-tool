@@ -13,15 +13,31 @@ class Address_tracker_btc(object):
         #self. shapeshift_middle_addresses = set([])
         #self. shapeshift_single_addresses = set([])
 
-        self. shapeshift_middle_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("middle")
-        self. shapeshift_single_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("single")
+        self.shapeshift_middle_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("middle")
+        self.shapeshift_single_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("single")
         self.shapeshift_stop_addresses = ["1NSc6zAdG2NGbjPLQwAjAuqjHSoq5KECT7"]
+        self.shapeshift_trader_addresses = ["1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+                                            "14cQRmViAzVKa277gZznByGZtnrVPQc8Lr",
+                                            "1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g",
+                                            "12cgpFdJViXbwHbhrA3TuW1EGnL25Zqc3P",
+                                            "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s"
+                                            ]
 
     def recognize_and_categorize(self, exchange_transaction):
             for tx_output in exchange_transaction["outputs"]:
                 if tx_output["address"] in self.shapeshift_main_addresses \
                         or tx_output["address"] in self.shapeshift_middle_addresses \
                         or tx_output["address"] in self.shapeshift_single_addresses:
+
+                    #Check if input from trading platform. If yes, ignore tx
+                    ignore = False
+                    for tx_input in exchange_transaction["inputs"]:
+                        if tx_input in self.shapeshift_trader_addresses:
+                            ignore = True
+                            break
+                    if ignore:
+                        return exchange_transaction
+
                     if tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
                         # Delete Shapeshift Address from Outputs (and leave only User Address(es))
                         exchange_transaction["outputs"].remove(tx_output)
@@ -68,6 +84,16 @@ class Address_tracker_btc(object):
                     or tx_output["address"] in self.shapeshift_middle_addresses \
                     or tx_output["address"] in self.shapeshift_single_addresses:
                 print("Found match in Transaction: " + str(exchange_transaction["hash"]))
+
+                #Check if input from trading platform. If yes, ignore tx
+                ignore = False
+                for tx_input in exchange_transaction["inputs"]:
+                    if tx_input in self.shapeshift_trader_addresses:
+                        ignore = True
+                        break
+                if ignore:
+                    return exchange_transaction
+
                 if tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
 
                     for tx_input in exchange_transaction["inputs"]:
