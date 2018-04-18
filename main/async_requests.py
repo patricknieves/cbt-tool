@@ -69,7 +69,7 @@ class Async_requester(object):
         pill2kill.set()
         map(threading.Thread.join, threads)
 
-        print("Duration total: " + str(time.time() - start))
+        #print("Duration total: " + str(time.time() - start))
         self.all_blocks.sort(key=lambda x: x[0]["block_nr"], reverse=True)
         return self.all_blocks
 

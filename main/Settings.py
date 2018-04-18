@@ -1,3 +1,8 @@
+import traceback
+
+import sys
+
+
 def get_rate_lower_bound(currency):
     if currency == "BTC":
         return 0.90
@@ -42,17 +47,21 @@ def get_preparation_range(currency):
     else:
         return
 
-def get_exchanger_fee(currency, transaction_fee, number_of_outputs):
-    if currency == "BTC":
-        if number_of_outputs < 3:
-            return transaction_fee * 1.6
-        else:
-            return transaction_fee * 0.3
-    elif currency == "ETH":
-        return transaction_fee * 1.8
-    else:
-        return
 
+def get_exchanger_fee(currency, transaction_fee, number_of_outputs):
+    try:
+        if currency == "BTC":
+            if number_of_outputs < 3:
+                return transaction_fee * 1.6
+            else:
+                return transaction_fee * 0.3
+        elif currency == "ETH":
+            return transaction_fee * 1.8
+        else:
+            return
+    except:
+        traceback.print_exc()
+        sys.exit("Error in program. Aborting")
 
 def get_scraper_offset(currency):
     if currency == "BTC":

@@ -153,6 +153,9 @@ class Exchange_finder(object):
 
     def load_blocks(self, current_search_time):
         load_more = True
+        print(self.address_manager.count_addresses())
+        print("Block Loading BTC: " + str(self.current_block_numbers["BTC"]))
+        print("Block Loading ETH: " + str(self.current_block_numbers["ETH"]))
         while load_more:
             load_more = False
             for currency in self.currencies:
@@ -168,7 +171,7 @@ class Exchange_finder(object):
                 new_blocks = self.async_requester.get_multiple_blocks()
                 # Pass blocks to filtering
                 self.async_filter_and_save(new_blocks)
-                print("Block Loading Duration: " + str(time.time() - start))
+                #print("Block Loading Duration: " + str(time.time() - start))
         self.sort_blocks_and_transactions()
 
     def async_compare(self, block_from):

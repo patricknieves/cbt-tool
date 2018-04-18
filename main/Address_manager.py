@@ -23,3 +23,6 @@ class Address_manager(object):
 
     def save_addresses_end(self):
         self.address_tracker_btc.save_all_addresses()
+
+    def count_addresses(self):
+        return "BTC Adresses: MIDDLE " + str(len(self.address_tracker_btc.shapeshift_middle_addresses)) + " & SINGLE: " + str(len(self.address_tracker_btc.shapeshift_middle_addresses))
