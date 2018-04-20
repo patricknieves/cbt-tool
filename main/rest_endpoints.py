@@ -13,13 +13,35 @@ shapeshift_withdrawal_addresses = ["0xd3273eba07248020bf98a8b560ec1576a612102f",
                                         "0x3b0bc51ab9de1e5b7b6e34e5b960285805c41736",
                                         "0xeed16856d551569d134530ee3967ec79995e2051",
                                         "0x563b377a956c80d77a7c613a9343699ad6123911"]
+columns ="id, " \
+        "currency_from, " \
+        "currency_to, " \
+        "amount_from, " \
+        "amount_to, " \
+        "fee_from, " \
+        "fee_to, " \
+        "fee_exchange, " \
+        "address_from, " \
+        "address_to, " \
+        "hash_from, " \
+        "hash_to, " \
+        "time_from, " \
+        "time_block_from, " \
+        "time_to, " \
+        "time_block_to, " \
+        "block_nr_from, " \
+        "block_nr_to, " \
+        "dollarvalue_from, " \
+        "dollarvalue_to"
+
+
 
 class Exchange_block_nr_from(Resource):
     def get(self):
         start = request.args.get('start')
         end = request.args.get('end')
         currency = request.args.get('currency')
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE currency_from = %s AND block_nr_from BETWEEN %s AND %s", (currency, start, end))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE currency_from = %s AND block_nr_from BETWEEN %s AND %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE currency_from = %s AND block_nr_from BETWEEN %s AND %s", (currency, start, end, currency, start, end))
         return jsonify(result)
 
 class Exchange_block_nr_to(Resource):
@@ -27,7 +49,7 @@ class Exchange_block_nr_to(Resource):
         start = request.args.get('start')
         end = request.args.get('end')
         currency = request.args.get('currency')
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE currency_to = %s AND block_nr_to BETWEEN %s AND %s", (currency, start, end))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE currency_to = %s AND block_nr_to BETWEEN %s AND %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE currency_to = %s AND block_nr_to BETWEEN %s AND %s", (currency, start, end, currency, start, end))
         return jsonify(result)
 
 class Exchange_time_range(Resource):
@@ -37,27 +59,27 @@ class Exchange_time_range(Resource):
         start = datetime.datetime.strptime(start, "%Y-%m-%dT%H:%M:%S")
         end = datetime.datetime.strptime(end, "%Y-%m-%dT%H:%M:%S")
 
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE time_block_from BETWEEN %s AND %s", (start, end))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE time_block_from BETWEEN %s AND %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE time_block_from BETWEEN %s AND %s", (start, end, start, end))
         return jsonify(result)
 
 class Exchange_address_from(Resource):
     def get(self, address_from):
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE address_from = %s", (address_from,))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE address_from = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE address_from = %s", (address_from, address_from))
         return jsonify(result)
 
 class Exchange_address_to(Resource):
     def get(self, address_to):
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE address_to = %s", (address_to,))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE address_to = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE address_to = %s", (address_to, address_to))
         return jsonify(result)
 
 class Exchange_hash_from(Resource):
     def get(self, hash_from):
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE hash_from = %s", (hash_from,))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE hash_from = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE hash_from = %s", (hash_from, hash_from))
         return jsonify(result)
 
 class Exchange_hash_to(Resource):
     def get(self, hash_to):
-        result = query_db("SELECT * FROM cross_block.exchanges WHERE hash_to = %s", (hash_to,))
+        result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE hash_to = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE hash_to = %s", (hash_to, hash_to))
         return jsonify(result)
 
 class Exchange_input_from(Resource):
@@ -76,7 +98,7 @@ class Exchange_input_from(Resource):
             return jsonify({ "error": error })
         else:
             for tx in response:
-                found_exchanges = query_db("SELECT * FROM cross_block.exchanges WHERE hash_from = %s", (tx["hash"],))
+                found_exchanges = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE hash_from = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE hash_from = %s", (tx["hash"], tx["hash"]))
                 result.extend(found_exchanges)
 
             result = sorted(result, key=lambda item:(abs(Decimal(item["diff_from_expected_outcome"]) - 1)))
@@ -102,7 +124,7 @@ class Exchange_input_to(Resource):
             return jsonify({ "error": error })
         else:
             for tx in response:
-                found_exchanges = query_db("SELECT * FROM cross_block.exchanges WHERE hash_to = %s", (tx["hash"],))
+                found_exchanges = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE hash_to = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE hash_to = %s", (tx["hash"], tx["hash"]))
                 result.extend(found_exchanges)
 
             result = sorted(result, key=lambda item:(abs(Decimal(item["diff_from_expected_outcome"]) - 1)))
@@ -132,14 +154,21 @@ def query_db(query, parameters):
             "hash_to": emp[11],
             "time_block_from": emp[13],
             "time_block_to": emp[15],
-            "timestamp_block_from": calendar.timegm(emp[13].timetuple()),
-            "timestamp_block_to": calendar.timegm(emp[15].timetuple()),
             "block_nr_from": emp[16],
             "block_nr_to": emp[17],
             "dollarvalue_from": emp[18],
             "dollarvalue_to": emp[19],
-            "diff_from_expected_outcome": str(float(emp[4]) / (float(emp[3]) * (emp[18] / emp[19]) - float(emp[7])))
         }
+        if emp[13]:
+            empDict["timestamp_block_from"] = calendar.timegm(emp[13].timetuple())
+        if emp[15]:
+            empDict["timestamp_block_to"] = calendar.timegm(emp[15].timetuple())
+        if emp[3] and emp[4] and emp[18] and emp[19] and emp[7]:
+            try:
+                empDict["diff_from_expected_outcome"] = str(float(emp[4]) / (float(emp[3]) * (emp[18] / emp[19]) - float(emp[7])))
+            except:
+                empDict["diff_from_expected_outcome"] = 0
+                print("calculation not possible!")
 
         empList.append(empDict)
 
