@@ -54,6 +54,7 @@ class Shapeshift(object):
                     break
 
 def main():
+    setup_db()
     shapeshift_manager = Shapeshift()
     while True:
         start_time_loop = time.time()
@@ -63,5 +64,10 @@ def main():
         if elapsed_time_loop < duration_to_wait:
             print ("Done! Wait " + str(duration_to_wait - elapsed_time_loop) + " seconds")
             time.sleep(duration_to_wait - elapsed_time_loop)
+
+def setup_db():
+    Database_manager.create_database()
+    Database_manager.initialize_db()
+    Database_manager.create_table_scraper()
 
 if __name__ == "__main__": main()

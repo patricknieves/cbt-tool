@@ -134,6 +134,7 @@ class Data_retriever(object):
 
 
 def main():
+    setup_db()
     btc_finder = Data_retriever("BTC")
     eth_finder = Data_retriever("ETH")
     while True:
@@ -150,6 +151,11 @@ def main():
         if elapsed_time < 30*60:
             print("Waiting 30 min for next loop")
             time.sleep(30*60)
+
+def setup_db():
+    Database_manager.create_database()
+    Database_manager.initialize_db()
+    Database_manager.create_table_scraper()
 
 
 if __name__ == "__main__": main()
