@@ -131,3 +131,25 @@ class Data_retriever(object):
         else:
             traceback.print_exc()
             print("Couldn't get the corresponding Transaction for " + str(currency))
+
+
+def main():
+    btc_finder = Data_retriever("BTC")
+    eth_finder = Data_retriever("ETH")
+    while True:
+        start_time = time.time()
+
+        print ("Searching for BTC exchanges...")
+        btc_finder.prepare()
+        btc_finder.find_exchanges()
+        print ("Searching for ETH exchanges...")
+        eth_finder.prepare()
+        eth_finder.find_exchanges()
+
+        elapsed_time = time.time() - start_time
+        if elapsed_time < 30*60:
+            print("Waiting 30 min for next loop")
+            time.sleep(30*60)
+
+
+if __name__ == "__main__": main()

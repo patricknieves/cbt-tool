@@ -2,6 +2,7 @@ import datetime
 from Shapeshift_fee import Shapeshift_fee
 from Coinmarketcap import Coinmarketcap
 from main import Database_manager, Shapeshift_api
+import time
 
 
 class Shapeshift(object):
@@ -51,3 +52,16 @@ class Shapeshift(object):
                     self.all_exchanges.remove(exchange)
                 else:
                     break
+
+def main():
+    shapeshift_manager = Shapeshift()
+    while True:
+        start_time_loop = time.time()
+        shapeshift_manager.get_new_exchanges()
+        duration_to_wait = shapeshift_manager.duration
+        elapsed_time_loop = time.time() - start_time_loop
+        if elapsed_time_loop < duration_to_wait:
+            print ("Done! Wait " + str(duration_to_wait - elapsed_time_loop) + " seconds")
+            time.sleep(duration_to_wait - elapsed_time_loop)
+
+if __name__ == "__main__": main()
