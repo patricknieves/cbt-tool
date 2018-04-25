@@ -61,6 +61,12 @@ Then run the tool:
 ```
 python main/Main.py
 ```
+### Running the REST API
+
+Then run the tool:
+```
+python main/rest_endpoints.py
+```
 
 ### Using Systemd:
 
