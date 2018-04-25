@@ -91,17 +91,17 @@ class Data_retriever(object):
                 elif currency == "BTC":
                     transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
 
-                    for tries in range(3):
-                        if not("block_height" in transaction):
-                            print("Block not confirmed yet. Waiting 5 min")
-                            print("Tx: " + str(tx_hash))
-                            time.sleep(5*60)
-                            transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
-                        else:
-                            break
+                    #for tries in range(3):
+                    #    if not("block_height" in transaction):
+                    #        print("Block not confirmed yet. Waiting 5 min")
+                    #        print("Tx: " + str(tx_hash))
+                    #        time.sleep(5*60)
+                    #        transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
+                    #    else:
+                    #        break
 
                     if not("block_height" in transaction):
-                        print("Block not confirmed in 15 minutes. Couldn't get the corresponding Transaction for  " + str(tx_hash))
+                        print("Block not confirmed yet. Couldn't get the corresponding Transaction for " + str(tx_hash))
                         return
 
                     block_nr_to = int(transaction["block_height"])
