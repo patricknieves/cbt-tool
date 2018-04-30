@@ -120,8 +120,8 @@ def get_main_addresses():
             '17NqGW6HY3f2LY7wFkEDn9yXpq8LWMRMEQ',
             '3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B',
 
-            "1NE6snFBUQD2aExH8KZdzEbDiNCyANjfVg" #Deposit address (connections:0)
-            "1GJkx984EHyR5dCPvVisE9Y7p18MKa1ixs", #Deposit address (connections:0)
+            '1NE6snFBUQD2aExH8KZdzEbDiNCyANjfVg',
+            '1GJkx984EHyR5dCPvVisE9Y7p18MKa1ixs'
 
             #"1Fq1iUJf58Xyv6gFzmjnbqNMPwQ3uhmwjL", #Deposit address (connections:0)
             #"1JiDzKGZc81eMWxDncXc6EyBuW4NsopAb ", #Deposit address (connections:0)
