@@ -37,9 +37,8 @@ class Address_tracker_btc(object):
                         ignore = True
                         break
                 if ignore:
-                    return exchange_transaction
-
-                if tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
+                    pass
+                elif tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
                     # Delete Shapeshift Address from Outputs (and leave only User Address(es))
                     exchange_transaction["outputs"].remove(tx_output)
 
@@ -56,6 +55,7 @@ class Address_tracker_btc(object):
                                 self.shapeshift_middle_addresses.add(tx_input["address"])
                             else:
                                 self.shapeshift_single_addresses.add(tx_input["address"])
+                                Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
                 else:
                     # Leave only Shapeshift Address in Outputs
                     exchange_transaction["outputs"] = [tx_output]
@@ -84,9 +84,8 @@ class Address_tracker_btc(object):
                         ignore = True
                         break
                 if ignore:
-                    return exchange_transaction
-
-                if tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
+                    pass
+                elif tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
 
                     for tx_input in exchange_transaction["inputs"]:
                         #if not(tx_input["address"] in self.shapeshift_stop_addresses) \
@@ -100,7 +99,7 @@ class Address_tracker_btc(object):
                             else:
                                 print("Adding new SINGLE Address: " + str(tx_input["address"]))
                                 self.shapeshift_single_addresses.add(tx_input["address"])
-
+                                Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
                 for tx_output_delete in exchange_transaction["outputs"]:
                     if tx_output_delete["address"] in self.shapeshift_single_addresses:
                         print("Deleting SINGLE Address: " + str(tx_output["address"]))

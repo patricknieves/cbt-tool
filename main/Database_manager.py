@@ -420,6 +420,23 @@ def update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, 
         traceback.print_exc()
         #db.rollback()
 
+def create_test_table_relations():
+    dbClass.query("CREATE TABLE IF NOT EXISTS relations ("
+                  "id int(11) NOT NULL AUTO_INCREMENT,"
+                  "input_address varchar(120) DEFAULT NULL,"
+                  "output_address varchar(120) DEFAULT NULL,"
+                  "hash_address varchar(120) DEFAULT NULL, "
+                  "PRIMARY KEY (id))")
+
+def insert_relation(input_address, output_address, hash_address):
+    try:
+        dbClass.query("INSERT IGNORE INTO relations (input_address, output_address, hash_address) VALUES (%s, %s, %s)", (input_address, output_address, hash_address))
+        dbClass.commit()
+    except:
+        print("Problem saving Shapeshift Address: "
+              "Address: " + str(hash_address))
+        traceback.print_exc()
+
 
 # Delete all found exchanges in DB
 def delete_all_data():

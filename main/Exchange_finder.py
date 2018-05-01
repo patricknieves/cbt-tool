@@ -207,6 +207,9 @@ class Exchange_finder(object):
                     rate_cmc = dollarvalue_from/dollarvalue_to
                     number_of_outputs = len(transaction_to["outputs"])
                     # Compare Values with Rates - The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
+                    if not(transaction_to["fee"]):
+                        print("No fee for tx : " + str(transaction_to["hash"]))
+                        continue
                     fee_exchange = Settings.get_exchanger_fee(transaction_to["symbol"], transaction_to["fee"], number_of_outputs)
                     for output_transaction_from in transaction_from["outputs"]:
                         expected_output = (output_transaction_from["amount"] * rate_cmc) - fee_exchange # - transaction_to["fee"]
