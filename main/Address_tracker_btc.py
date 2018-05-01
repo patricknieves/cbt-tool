@@ -149,6 +149,9 @@ def main():
     start_time = time.time()
     Database_manager.initialize_db()
     Database_manager.create_table_shapeshift_addresses_btc()
+    #TODO delete later
+    Database_manager.create_test_table_relations()
+    
     address_tracker = Address_tracker_btc()
     address_tracker.prepare_addresses(511557)
 
