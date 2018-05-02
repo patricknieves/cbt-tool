@@ -204,6 +204,9 @@ class Exchange_finder(object):
                 elif exchange_time_diff < Settings.get_exchange_time_upper_bound(transaction_to["symbol"]):
                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
                     dollarvalue_to = self.currency_data[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
+                    if not(dollarvalue_from) or not(dollarvalue_to):
+                        print("Dollar value counld not be retrieved for tx : " + str(transaction_to["hash"]))
+                        continue
                     rate_cmc = dollarvalue_from/dollarvalue_to
                     number_of_outputs = len(transaction_to["outputs"])
                     # Compare Values with Rates - The expected output for Shapeshift is the (input*best rate) - set fee. For other exchanges also the transaction fee should be included!
