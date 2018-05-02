@@ -437,6 +437,15 @@ def insert_relation(input_address, output_address, hash_address):
               "Address: " + str(hash_address))
         traceback.print_exc()
 
+def get_relations(addr):
+    results = None
+    try:
+        results = dbClass.query_get("SELECT * FROM cross_block.relations WHERE input_address = %s", (addr,))
+    except:
+        print("Problem retrieving Shapeshift Addresses from DB")
+        traceback.print_exc()
+    return results
+
 
 # Delete all found exchanges in DB
 def delete_all_data():
