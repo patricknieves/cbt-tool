@@ -9,6 +9,7 @@ from main import Tor
 
 
 class Data_retriever(object):
+    """ Class responisble for searching additional data on a certain blockchain"""
 
     def __init__(self, currency, last_block_number=None, exchanges=None):
         self.currency = currency
@@ -17,10 +18,12 @@ class Data_retriever(object):
         self.last_block_checked = None
 
     def prepare(self):
+        """ Retrieve all exchanges without additional data and set initial block number"""
         self.exchanges = Database_manager.get_shapeshift_exchanges_by_currency(self.currency)
         self.current_block_number = Currency_apis.get_last_block_number(self.currency) - Settings.get_scraper_offset(self.currency)
 
     def find_exchanges(self):
+        """ Main method for searching additional blockchain data"""
         start_block = self.current_block_number
         if self.last_block_checked == None:
             self.last_block_checked = start_block - Settings.get_scraper_offset_for_first_iteration(self.currency)
@@ -34,6 +37,7 @@ class Data_retriever(object):
         self.last_block_checked = start_block - Settings.get_scraper_offset_last_block(self.currency)
 
     def compare(self, transaction):
+        """ Check if any exchange belongs to a transaction retrieved from the blockchain """
         for exchange in list(self.exchanges):
             block_time_diff = (exchange["time_exchange"] - transaction["blocktime"]).total_seconds()
             tx_time_diff = (exchange["time_exchange"] - transaction["time"]).total_seconds()
@@ -73,6 +77,7 @@ class Data_retriever(object):
                 self.exchanges.remove(exchange)
 
     def search_withdrawal_data(self, exchange_details, exchange):
+        """ Search for additional data for the withdrawal transaction (Block number, tx time, block time and fee)"""
         currency = exchange_details["outgoingType"]
         tx_hash =  exchange_details["transaction"]
         exchange_id = exchange["id"]
@@ -90,15 +95,6 @@ class Data_retriever(object):
                     Database_manager.update_shapeshift_exchange_corresponding_tx(time_to, time_block_to, fee_to, block_nr_to, exchange_id)
                 elif currency == "BTC":
                     transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
-
-                    #for tries in range(3):
-                    #    if not("block_height" in transaction):
-                    #        print("Block not confirmed yet. Waiting 5 min")
-                    #        print("Tx: " + str(tx_hash))
-                    #        time.sleep(5*60)
-                    #        transaction = requests.get("https://blockchain.info/de/rawtx/" + str(tx_hash)).json()
-                    #    else:
-                    #        break
 
                     if not("block_height" in transaction):
                         print("Block not confirmed yet. Couldn't get the corresponding Transaction for " + str(tx_hash))
@@ -134,6 +130,7 @@ class Data_retriever(object):
 
 
 def main():
+    """ Method to start the Data retriever for Bitcoin and Ethereum"""
     setup_db()
     btc_finder = Data_retriever("BTC")
     eth_finder = Data_retriever("ETH")
@@ -153,6 +150,7 @@ def main():
             time.sleep(30*60)
 
 def setup_db():
+    """ Database Setup """
     Database_manager.create_database()
     Database_manager.initialize_db()
     Database_manager.create_table_scraper()

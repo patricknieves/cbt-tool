@@ -6,7 +6,7 @@ import time
 
 
 class Shapeshift(object):
-
+    """ Class responsible for scraping data from the Shapeshift API"""
     def __init__(self):
         self.shapeshift_fee_data = Shapeshift_fee()
         self.all_exchanges = []
@@ -14,6 +14,7 @@ class Shapeshift(object):
         self.currency_data = Coinmarketcap()
 
     def get_new_exchanges(self):
+        """ Main method which retrieves and handles the scraped data"""
         # Request last 50 Transactions from Shapeshift
         new_exchanges = Shapeshift_api.get_exchanges_shapeshift()
 
@@ -54,6 +55,7 @@ class Shapeshift(object):
                     break
 
 def main():
+    """ Method to start the Shapeshift Scraper component """
     setup_db()
     shapeshift_manager = Shapeshift()
     while True:
@@ -66,6 +68,7 @@ def main():
             time.sleep(duration_to_wait - elapsed_time_loop)
 
 def setup_db():
+    """ Database setup """
     Database_manager.create_database()
     Database_manager.initialize_db()
     Database_manager.create_table_scraper()

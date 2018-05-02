@@ -5,11 +5,13 @@ import time
 from main import Tor
 
 class Coinmarketcap(object):
+    """ Class responisble for retrieving exchange rates from Coinmarketcap """
     def __init__(self):
         self.coinmarketcap_data = self.get_rates()
         self.last_update_time = time.time()
 
     def get_dollarvalue(self, currency):
+        """ Get the dollar value for a certain currency """
         current_time = time.time()
         # Update data every 10 min
         if (current_time - self.last_update_time) > 10*60:
@@ -20,6 +22,7 @@ class Coinmarketcap(object):
                 return currencyData["price_usd"]
 
     def get_rates(self):
+        """ Method which calls the external API """
         Tor.change_ip()
         for attempt in range(5):
             try:

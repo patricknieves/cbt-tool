@@ -6,18 +6,21 @@ from Data_retriever import Data_retriever
 
 
 def main():
+    """ Main method to start all components of the scraper """
     setup_db()
     #Database_manager.delete_all_scraper_data()
     get_shapeshift_exchanges()
 
 
 def setup_db():
+    """ Database setup """
     Database_manager.create_database()
     Database_manager.initialize_db()
     Database_manager.create_table_scraper()
 
 
 def get_shapeshift_exchanges():
+    """ initializes all components and runs them """
     shapeshift_manager = Shapeshift()
     t = Thread(target=find_blockchain_data, args=())
     t.start()
@@ -35,6 +38,7 @@ def get_shapeshift_exchanges():
 
 
 def find_blockchain_data():
+    """ Starts the Data Retriever for Bitcoin and Ethereum """
     btc_finder = Data_retriever("BTC")
     eth_finder = Data_retriever("ETH")
     while True:

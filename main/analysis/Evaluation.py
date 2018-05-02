@@ -1,25 +1,20 @@
-import os
-import datetime
 from main import Shapeshift_api
 import pandas as pd
 import time
 
 
 def main():
-    run_whole_analysis()
-    # Or
-    #run_only_api_comparison()
+    """ Main method which starts all evaluation processes. File names must be set first """
+    file_name_scraped_data = 'scraper_data_example.csv'
+    file_name_tool_data = 'tool_data_example.csv'
+    run_whole_analysis(file_name_scraped_data, file_name_tool_data)
 
 
-def run_whole_analysis():
-    prepare()
+def run_whole_analysis(file_name_scraper, file_name_tool):
+    """ Method which loads the data and executes the evaluation processes """
     # load data from excel files into dataframes
-    df_scraped_data = load_scraped_data()
-    df_found_data = load_tool_data()
-
-    # Filter only entries in time range
-    #df_found_data = df_found_data[
-    #    df_found_data["time_block_from"] > (df_scraped_data["time_exchange"].iloc[0] - datetime.timedelta(minutes=15))]
+    df_scraped_data = load_scraped_data(file_name_scraper)
+    df_found_data = load_tool_data(file_name_tool)
 
     # Check which exchanges were found by tool by comparing with scraped data
     start_compare = time.time()
@@ -32,10 +27,10 @@ def run_whole_analysis():
     print("Duration: " + str(time.time() - start_compare_api))
 
 
-def run_only_api_comparison():
-    prepare()
+def run_only_api_comparison(file_name):
+    """ Method which runs only the evaluation using the Shapeshift API """
     # Load excel data into dataframe
-    result_df = pd.read_csv('analyzed_tool_1520850238.08.csv')
+    result_df = pd.read_csv(file_name)
 
     start_compare_api = time.time()
     # Check with help of the Shapeshift API which exchanges were additionally found and classify them
@@ -43,41 +38,11 @@ def run_only_api_comparison():
     print("Duration: " + str(time.time() - start_compare_api))
 
 
-def prepare():
-    # Retrieve current working directory (`cwd`)
-    cwd = os.getcwd()
-
-    # Change directory
-    #os.chdir("C:\\Users\\Patrick\\Documents\\TUM\\13. Semester\\Masterarbeit\\Crawler\\saved addresses")
-    os.chdir("C:\\Users\\Patrick\\Documents\\TUM\\13. Semester\\Masterarbeit\\Crawler\\New scraper")
-
-    # List all files and directories in current directory
-    print(os.listdir('.'))
-
-
-def load_scraped_data_old():
-    # Load scraped data
-    file = 'data_scraper-14.12.csv'
-    # Scraped data in this case is separated by semicolons and date has to be adapted as it was transform falsely
-    df_scraped_data = pd.read_csv(file, sep=';')
-    df_scraped_data['time_exchange'] = pd.to_datetime(df_scraped_data['time_exchange']) - datetime.timedelta(
-        days=365 * 4 + 2)
-    # Filter only BTC and ETH
-    df_scraped_data = df_scraped_data[
-        df_scraped_data["currency_from"].isin(["BTC", "ETH"]) & df_scraped_data["currency_to"].isin(["BTC", "ETH"])]
-    df_scraped_data["found"] = False
-    return df_scraped_data
-
-
-def load_scraped_data():
+def load_scraped_data(file_name):
+    """ Loads the scraper data into a data frame """
     # Load data found by tool
-    file = 'server_scraped_02.03.csv'
+    file = file_name
     df_scraped_data = pd.read_csv(file, delimiter=',')
-
-    #df_scraped_data = df_scraped_data[
-    #    df_scraped_data["id"] >= 242889]
-    df_scraped_data = df_scraped_data[
-        248933 >= df_scraped_data["id"]]
 
     df_scraped_data['time_exchange'] = pd.to_datetime(df_scraped_data['time_exchange'])
 
@@ -88,10 +53,10 @@ def load_scraped_data():
     return df_scraped_data
 
 
-def load_tool_data():
+def load_tool_data(file_name):
+    """ loads the tool data into a data frame """
     # Load data found by tool
-    #file = 'local_exchanges_07.02.csv'
-    file = 'tool_new_15.csv'
+    file = file_name
     df_found_data = pd.read_csv(file)
     df_found_data['time_block_from'] = pd.to_datetime(df_found_data['time_block_from'])
     df_found_data["shapeshift"] = False
@@ -101,6 +66,7 @@ def load_tool_data():
 
 
 def compare(df_scraped_data, df_found_data):
+    """ Method which compares scraper and tool data. The result is written to excel files """
     # scraped
     df1 = pd.merge(df_scraped_data, df_found_data, on=['address_from', 'address_to', 'hash_from', 'hash_to'], how='inner')
     # tool
@@ -118,11 +84,6 @@ def compare(df_scraped_data, df_found_data):
     found_in_scraper = df_scraped_data["id"].isin(scraper_ids)
     df_scraped_data["found"] = found_in_scraper
 
-    print(len(df_scraped_data[df_scraped_data["found"] == True]))
-    print(len(df_scraped_data[df_scraped_data["found"] == False]))
-    print(len(df_found_data[df_found_data["shapeshift"] == True]))
-    print(len(df_found_data[df_found_data["shapeshift"] == False]))
-
     # write result to new csv files
     time_now = time.time()
     df_scraped_data.to_csv('analyzed_scraper_' + str(time_now) + '.csv')
@@ -132,6 +93,7 @@ def compare(df_scraped_data, df_found_data):
 
 
 def find_with_shapeshift_api(df_found_data):
+    """ Method which checks the tool data using the Shapeshift API """
     df_found_data["real_currency_to"] = "Not found"
     df_found_data["found_by_api"] = False
     df_found_data["status"] = None
@@ -140,12 +102,8 @@ def find_with_shapeshift_api(df_found_data):
     last_address = None
     found_exchanges_for_one_address = []
     found = False
-    i = 0
 
     for tool_index, tool_row in df_found_data.iterrows():
-        # testing
-        i = i + 1
-        print("Checking tx nr. " + str(i))
 
         # First Entry
         if not last_address:
@@ -206,6 +164,5 @@ def find_with_shapeshift_api(df_found_data):
 
     time_now = time.time()
     df_found_data.to_csv('final_analysis_' + str(time_now) + '.csv')
-
 
 if __name__ == "__main__": main()
