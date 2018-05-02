@@ -15,14 +15,15 @@ class Address_tracker_btc(object):
 
         self.shapeshift_middle_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("middle")
         self.shapeshift_single_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("single")
-        #self.shapeshift_stop_addresses = ["1NSc6zAdG2NGbjPLQwAjAuqjHSoq5KECT7"]
-        self.shapeshift_trader_addresses = ["1N52wHoVR79PMDishab2XmRHsbekCdGquK",
+        self.shapeshift_stop_addresses = ["1N52wHoVR79PMDishab2XmRHsbekCdGquK",
                                             "14cQRmViAzVKa277gZznByGZtnrVPQc8Lr",
                                             "1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g",
                                             "12cgpFdJViXbwHbhrA3TuW1EGnL25Zqc3P",
                                             "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s",
-                                            "1NSc6zAdG2NGbjPLQwAjAuqjHSoq5KECT7"
+                                            "1NSc6zAdG2NGbjPLQwAjAuqjHSoq5KECT7" # Shapeshifts main Address
                                             ]
+        self.shapeshift_stop_hashes = ["41a5261ae9c3e96380843b92a5987e54f2c221d85806d5ddecc3bef9b466ccaa",
+                                       "95e3a55763e7e6be4b95b4e7d695db86760ae9d5b31a13d570f45b2b276da5f9"]
 
     def recognize_and_categorize(self, exchange_transaction):
         for tx_output in exchange_transaction["outputs"]:
@@ -33,33 +34,41 @@ class Address_tracker_btc(object):
                 #Check if input from trading platform. If yes, ignore tx
                 ignore = False
                 for tx_input in exchange_transaction["inputs"]:
-                    if tx_input["address"] in self.shapeshift_trader_addresses:
+                    if tx_input["address"] in self.shapeshift_stop_addresses:
                         ignore = True
                         break
                 if ignore:
                     pass
                 elif tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
-                    # Delete Shapeshift Address from Outputs (and leave only User Address(es))
-                    exchange_transaction["outputs"].remove(tx_output)
+                    if not(exchange_transaction["hash"] in exchange_transaction):
+                        # Delete Shapeshift Address from Outputs (and leave only User Address(es))
+                        exchange_transaction["outputs"].remove(tx_output)
+                        exchange_transaction["is_exchange_deposit"] = False
+                        exchange_transaction["is_exchange_withdrawl"] = True
 
-                    exchange_transaction["is_exchange_deposit"] = False
-                    exchange_transaction["is_exchange_withdrawl"] = True
-
-                    for tx_input in exchange_transaction["inputs"]:
-                        #if not(tx_input["address"] in self.shapeshift_stop_addresses) \
-                        if not(tx_input["address"] in self.shapeshift_main_addresses) \
-                                and not(tx_input["address"] in self.shapeshift_middle_addresses):
-                            # Check if input address was already used and move from single to middle class. (len(exchange_transaction["inputs"]) == 1 and)
-                            if tx_input["address"] in self.shapeshift_single_addresses:
-                                self.shapeshift_single_addresses.remove(tx_input["address"])
-                                self.shapeshift_middle_addresses.add(tx_input["address"])
-                            else:
-                                self.shapeshift_single_addresses.add(tx_input["address"])
-                                Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
+                        for tx_input in exchange_transaction["inputs"]:
+                            #if not(tx_input["address"] in self.shapeshift_stop_addresses) \
+                            if not(tx_input["address"] in self.shapeshift_main_addresses) \
+                                    and not(tx_input["address"] in self.shapeshift_middle_addresses):
+                                # Check if input address was already used and move from single to middle class. (len(exchange_transaction["inputs"]) == 1 and)
+                                if tx_input["address"] in self.shapeshift_single_addresses:
+                                    self.shapeshift_single_addresses.remove(tx_input["address"])
+                                    self.shapeshift_middle_addresses.add(tx_input["address"])
+                                else:
+                                    if not(exchange_transaction["fee"]):
+                                        print("This is a coin creation transaction: " + exchange_transaction["hash"])
+                                        if tx_output["address"] in self.shapeshift_single_addresses:
+                                            self.shapeshift_single_addresses.remove(tx_output["address"])
+                                        if tx_output["address"] in self.shapeshift_middle_addresses:
+                                            self.shapeshift_middle_addresses.remove(tx_output["address"])
+                                        print("Block: " + tx_output["address"])
+                                        self.shapeshift_stop_addresses.append(tx_output["address"])
+                                    else:
+                                        self.shapeshift_single_addresses.add(tx_input["address"])
+                                    Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
                 else:
                     # Leave only Shapeshift Address in Outputs
                     exchange_transaction["outputs"] = [tx_output]
-
                     exchange_transaction["is_exchange_deposit"] = True
                     exchange_transaction["is_exchange_withdrawl"] = False
 
@@ -80,26 +89,35 @@ class Address_tracker_btc(object):
                 #Check if input from trading platform. If yes, ignore tx
                 ignore = False
                 for tx_input in exchange_transaction["inputs"]:
-                    if tx_input["address"] in self.shapeshift_trader_addresses:
+                    if tx_input["address"] in self.shapeshift_stop_addresses:
                         ignore = True
                         break
                 if ignore:
                     pass
                 elif tx_output["address"][0] != "3" or tx_output["address"] in self.shapeshift_main_addresses:
-
-                    for tx_input in exchange_transaction["inputs"]:
-                        #if not(tx_input["address"] in self.shapeshift_stop_addresses) \
-                        if not(tx_input["address"] in self.shapeshift_main_addresses)\
-                                and not(tx_input["address"] in self.shapeshift_middle_addresses):
-                            # Check if input address was already used and move from single to middle class. (len(exchange_transaction["inputs"]) == 1 and)
-                            if tx_input["address"] in self.shapeshift_single_addresses:
-                                print("Adding new MIDDLE Addresses: " + str(tx_input["address"]))
-                                self.shapeshift_single_addresses.remove(tx_input["address"])
-                                self.shapeshift_middle_addresses.add(tx_input["address"])
-                            else:
-                                print("Adding new SINGLE Address: " + str(tx_input["address"]))
-                                self.shapeshift_single_addresses.add(tx_input["address"])
-                                Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
+                    if not(exchange_transaction["hash"] in exchange_transaction):
+                        for tx_input in exchange_transaction["inputs"]:
+                            #if not(tx_input["address"] in self.shapeshift_stop_addresses) \
+                            if not(tx_input["address"] in self.shapeshift_main_addresses)\
+                                    and not(tx_input["address"] in self.shapeshift_middle_addresses):
+                                # Check if input address was already used and move from single to middle class. (len(exchange_transaction["inputs"]) == 1 and)
+                                if tx_input["address"] in self.shapeshift_single_addresses:
+                                    print("Adding new MIDDLE Addresses: " + str(tx_input["address"]))
+                                    self.shapeshift_single_addresses.remove(tx_input["address"])
+                                    self.shapeshift_middle_addresses.add(tx_input["address"])
+                                else:
+                                    if not(exchange_transaction["fee"]):
+                                        print("This is a coin creation transaction: " + exchange_transaction["hash"])
+                                        if tx_output["address"] in self.shapeshift_single_addresses:
+                                            self.shapeshift_single_addresses.remove(tx_output["address"])
+                                        if tx_output["address"] in self.shapeshift_middle_addresses:
+                                            self.shapeshift_middle_addresses.remove(tx_output["address"])
+                                        print("Block: " + tx_output["address"])
+                                        self.shapeshift_stop_addresses.append(tx_output["address"])
+                                    else:
+                                        print("Adding new SINGLE Address: " + str(tx_input["address"]))
+                                        self.shapeshift_single_addresses.add(tx_input["address"])
+                                    Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
                 for tx_output_delete in exchange_transaction["outputs"]:
                     if tx_output_delete["address"] in self.shapeshift_single_addresses:
                         print("Deleting SINGLE Address: " + str(tx_output["address"]))

@@ -28,7 +28,7 @@ class Exchange_finder(object):
         self.async_requester = Async_requester()
         self.hours_single_loop = 1
         #self.hours_whole_analysis = 273*24 # bis zum 1.Juni 2017
-        self.hours_whole_analysis = 80*24
+        self.hours_whole_analysis = 150*24
         self.current_exchanges_found_one_block = []
         self.current_exchanges_found = []
         for currency in self.currencies:
@@ -54,7 +54,7 @@ class Exchange_finder(object):
         print("Duration for Preparation :" + str(time.time() - start_preparation))
         counter = 0
 
-        while start_time - current_search_time < range_to_analyze:
+        while start_time - current_search_time < range_to_analyze and self.current_block_numbers["BTC"] > 487764:
             start_loop = time.time()
 
             # Check if Array long enough. If not load more blocks until time difference of X min is reached
