@@ -6,6 +6,7 @@ from async_requests import Async_requester
 
 
 class Address_tracker_btc(object):
+    """ Class responsible for recognizing Shapeshift addresses for Bitcoin """
     def __init__(self):
         #self.shapeshift_main_addresses = set(Database_manager.get_all_shapeshift_addresses_btc())
         self.shapeshift_main_addresses = Settings.get_main_addresses()
@@ -26,6 +27,7 @@ class Address_tracker_btc(object):
                                        "95e3a55763e7e6be4b95b4e7d695db86760ae9d5b31a13d570f45b2b276da5f9"]
 
     def recognize_and_categorize(self, exchange_transaction):
+        """ Recognizes if the given transaction is related to Shapeshift and classifies it """
         for tx_output in exchange_transaction["outputs"]:
             if tx_output["address"] in self.shapeshift_main_addresses \
                     or tx_output["address"] in self.shapeshift_middle_addresses \
@@ -79,6 +81,7 @@ class Address_tracker_btc(object):
         return exchange_transaction
 
     def recognize(self, exchange_transaction):
+        """ Recognizes if the given transaction is related to Shapeshift and saves new addresses """
         for tx_output in exchange_transaction["outputs"]:
             if tx_output["address"] in self.shapeshift_main_addresses \
                     or tx_output["address"] in self.shapeshift_middle_addresses \
@@ -123,6 +126,7 @@ class Address_tracker_btc(object):
                 return
 
     def prepare_addresses(self, current_block_nr):
+        """ Runs the recognition algorithm for future blocks in order to build up a set of known addresses """
         nr_of_async_blocks = 10
         async_requester = Async_requester()
         number_of_blocks = Settings.get_preparation_range("BTC")
@@ -147,6 +151,7 @@ class Address_tracker_btc(object):
             Database_manager.insert_shapeshift_address_btc(address, "single")
 
     def filter_block(self, new_transactions):
+        """ Passes the transactions of a block to the recognition algorithm """
         block = []
         for new_transaction in new_transactions:
             transaction = self.recognize_and_categorize(new_transaction)
@@ -155,6 +160,7 @@ class Address_tracker_btc(object):
         return block
 
     def save_all_addresses(self):
+        """ Saves all identified addresses to the DB """
         Database_manager.create_table_shapeshift_addresses_btc_end()
         for address in self.shapeshift_middle_addresses:
             Database_manager.insert_shapeshift_address_btc_end(address, "middle")
@@ -162,6 +168,7 @@ class Address_tracker_btc(object):
             Database_manager.insert_shapeshift_address_btc_end(address, "single")
 
 def main():
+    """ Runs the recognition process from the given block number """
     start_time = time.time()
     Database_manager.initialize_db()
     Database_manager.create_table_shapeshift_addresses_btc()
