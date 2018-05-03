@@ -4,6 +4,7 @@ import sys
 
 
 def get_rate_lower_bound(currency):
+    """ Lower bound for allowed deviation of the withdrawal amount from the expected amount """
     if currency == "BTC":
         return 0.90
     elif currency == "ETH":
@@ -13,6 +14,7 @@ def get_rate_lower_bound(currency):
 
 
 def get_rate_upper_bound(currency):
+    """ Upper bound for allowed deviation of the withdrawal amount from the expected amount """
     if currency == "BTC":
         return 1.1
     elif currency == "ETH":
@@ -22,6 +24,7 @@ def get_rate_upper_bound(currency):
 
 
 def get_exchange_time_lower_bound(currency):
+    """ Lower bound for allowed difference between block confirmation time of the deposit and the transaction time of the withdrawal """
     if currency == "BTC":
         return 0
     elif currency == "ETH":
@@ -31,6 +34,7 @@ def get_exchange_time_lower_bound(currency):
 
 
 def get_exchange_time_upper_bound(currency):
+    """ Upper bound for allowed difference between block confirmation time of the deposit and the transaction time of the withdrawal """
     if currency == "BTC":
         return 15*60
     elif currency == "ETH":
@@ -40,6 +44,7 @@ def get_exchange_time_upper_bound(currency):
 
 
 def get_preparation_range(currency):
+    """ Number of blocks to check at the preparation process """
     if currency == "BTC":
         return 5000
     elif currency == "ETH":
@@ -49,6 +54,7 @@ def get_preparation_range(currency):
 
 
 def get_exchanger_fee(currency, transaction_fee, number_of_outputs):
+    """ Returns an estimation of the Shapeshift fee based on the transaction fee paid and the number of outputs """
     try:
         if currency == "BTC":
             if number_of_outputs < 3:
@@ -64,6 +70,7 @@ def get_exchanger_fee(currency, transaction_fee, number_of_outputs):
         sys.exit("Error in program. Aborting")
 
 def get_scraper_offset(currency):
+    """ Number of blocks to skip when starting a new search loop in the Data retriever """
     if currency == "BTC":
         return 3
     elif currency == "ETH":
@@ -72,6 +79,7 @@ def get_scraper_offset(currency):
         return
 
 def get_scraper_offset_last_block(currency):
+    """ Number of blocks to check in a loop by the Data Retriever, although they were checked in the previous loop """
     if currency == "BTC":
         return 6
     elif currency == "ETH":
@@ -80,6 +88,7 @@ def get_scraper_offset_last_block(currency):
         return
 
 def get_scraper_offset_for_first_iteration(currency):
+    """ Number of blocks to check by the Data Retriever in the first loop (as no limit is set yet) """
     if currency == "BTC":
         return 30
     elif currency == "ETH":
@@ -88,6 +97,7 @@ def get_scraper_offset_for_first_iteration(currency):
         return
 
 def get_block_number_for_hour(currency):
+    """ Number of blocks confirmed in an hour """
     if currency == "BTC":
         return 6
     elif currency == "ETH":
@@ -95,35 +105,15 @@ def get_block_number_for_hour(currency):
     else:
         return
 
-def get_main_addresses_old():
-    return [
-        "1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG", #Bittrex
-        "1LASN6ra8dwR2EjAfCPcghXDxtME7a89Hk", #Bitfinex
-        "1BvTQTP5PJVCEz7dCU2YxgMskMxxikSruM", #Poloniex
-        "17NqGW6HY3f2LY7wFkEDn9yXpq8LWMRMEQ", #Binance #new
-        "3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B", #Storage Address
-
-        "1E57TDxSju3AEecoUjjQKkbGWAitP12znn", #Unkonwn #feb #new
-        "1jhbBbDRdezEZ5tSsHZwuUg85Hhf4rWuz", #Unknown
-
-        "1HFyPNX9gEvGHNCR34hkiseTLj2MXmqYr7",
-        "1BiX4SkXd97AvjvTbGN1V9ykTtYf9EVXN5",
-        "3N1f4Hv4dmMkFCyvAqu3M4wcQQYNJvs232", #feb # connections:1
-        "17JnGQUbpqosaFZ7P3ywHQj6G75kERBSXa", # connetions: 0
-        "1BngmLiuiXbzSNpwQ9kEbMy1KZ6xj5Jxs4" #feb
-    ]
 
 def get_main_addresses():
-    return ['1LASN6ra8dwR2EjAfCPcghXDxtME7a89Hk',
-            '1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG',
-            '1BvTQTP5PJVCEz7dCU2YxgMskMxxikSruM',
-            '17NqGW6HY3f2LY7wFkEDn9yXpq8LWMRMEQ',
-            '3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B',
+    """ Main Addresses from which the Bitcoin address recognition starts """
+    return ['1LASN6ra8dwR2EjAfCPcghXDxtME7a89Hk', #Bitfinex
+            '1NoHmhqw9oTh7nNKsa5Dprjt3dva3kF1ZG', #Bittrex
+            '1BvTQTP5PJVCEz7dCU2YxgMskMxxikSruM', #Poloniex
+            '17NqGW6HY3f2LY7wFkEDn9yXpq8LWMRMEQ', #Binance
+            '3K9Xd9kPskEcJk9YyZk1cbHr2jthrcN79B', #Storage Address
 
-            '1NE6snFBUQD2aExH8KZdzEbDiNCyANjfVg',
-            '1GJkx984EHyR5dCPvVisE9Y7p18MKa1ixs'
-
-            #"1Fq1iUJf58Xyv6gFzmjnbqNMPwQ3uhmwjL", #Deposit address (connections:0)
-            #"1JiDzKGZc81eMWxDncXc6EyBuW4NsopAb ", #Deposit address (connections:0)
-            #"1BxQLt8EkLKEVgf9ifXEM2PQHz3sEdbVy8", #Deposit address (connections:0)
+            '1NE6snFBUQD2aExH8KZdzEbDiNCyANjfVg', #Deposit Address
+            '1GJkx984EHyR5dCPvVisE9Y7p18MKa1ixs' #Deposit Address
             ]

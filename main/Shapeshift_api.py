@@ -8,6 +8,7 @@ import Tor
 
 
 def get_exchange(address_from):
+    """ Get exchange details from Shapeshift API by sending the deposit address """
     Tor.change_ip()
     for attempt in range(5):
         try:
@@ -25,10 +26,10 @@ def get_exchange(address_from):
         else:
             print("Couldn't get transaction data from Shapeshift, no output address")
         return None
-        #sys.exit("Couldn't get transaction data from Shapeshift: " + address_from)
 
 
 def get_exchanger_name(address_from, address_to):
+    """ Check if transaction is a Shapeshift transaction """
     Tor.change_ip()
     for attempt in range(5):
         try:
@@ -43,10 +44,11 @@ def get_exchanger_name(address_from, address_to):
             return "Unknown"
     else:
         traceback.print_exc()
-        sys.exit("Couldn't get transaction data from Shapeshift: " + address_from)
+        return None
 
 
 def get_fees_shapeshift():
+    """ Returns the Shapeshift fees for all currency pairs """
     Tor.change_ip()
     for attempt in range(5):
         try:
@@ -61,10 +63,10 @@ def get_fees_shapeshift():
         traceback.print_exc()
         print("Couldn't get fees from Shapeshift")
         return None
-        #sys.exit("Couldn't get fees from Shapeshift")
 
 
 def get_exchanges_shapeshift():
+    """ Returns the recent 50 Shapeshift exchanges """
     Tor.change_ip()
     for attempt in range(5):
         try:
@@ -79,4 +81,3 @@ def get_exchanges_shapeshift():
         traceback.print_exc()
         print ("Couldn't get exchanges from Shapeshift")
         return None
-        # sys.exit("Couldn't get exchanges from Shapeshift")

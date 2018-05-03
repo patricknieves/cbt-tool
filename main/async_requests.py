@@ -8,7 +8,7 @@ import Currency_apis
 import threading
 
 class Async_requester(object):
-
+    """ Class responsible for requesting blocks asynchronously """
     def __init__(self):
         self.concurrent = 200
         self.all_blocks = []
@@ -17,6 +17,7 @@ class Async_requester(object):
 
 
     def do_work(self, stop_event):
+        """ Retrieves data from queue and downloads one block """
         while not stop_event.wait(0):
             try:
                 block_info = self.queue.get(timeout=0)
@@ -28,23 +29,13 @@ class Async_requester(object):
             except Empty:
                 continue
 
-    def get_multiple_blocks_old(self, currency, start_block, number_of_blocks):
-        start = time.time()
-        self.all_blocks = []
-        try:
-            for i in range(number_of_blocks):
-                self.queue.put({"currency": currency, "number": start_block - i})
-            self.queue.join()
-        except KeyboardInterrupt:
-            sys.exit(1)
-        print("Duration: " + str(time.time() - start))
-        self.all_blocks.sort(key=lambda x: x[0]["block_nr"], reverse=True)
-        return self.all_blocks
-
     def add_request_data(self, currency, start_block, number_of_blocks):
+        """ Adds data of the blocks which shall be downloaded. Data contain the currency,
+        the block number and the number of blocks which shall be downloaded starting from the given number """
         self.request_data.append({"currency": currency, "start_block": start_block, "number_of_blocks": number_of_blocks})
 
     def get_multiple_blocks(self):
+        """ Executes the downloading process and returns all blocks """
         start = time.time()
         self.all_blocks = []
 
@@ -69,27 +60,5 @@ class Async_requester(object):
         pill2kill.set()
         map(threading.Thread.join, threads)
 
-        #print("Duration total: " + str(time.time() - start))
         self.all_blocks.sort(key=lambda x: x[0]["block_nr"], reverse=True)
         return self.all_blocks
-
-def main_old():
-    ar = Async_requester()
-    print(threading.active_count())
-    result = ar.get_multiple_blocks_old("BTC", 499026, 6)
-    print(threading.active_count())
-    result = ar.get_multiple_blocks_old("ETH", 4724187, 4 * 60)
-    print(threading.active_count())
-    print ("finish")
-
-def main():
-    ar = Async_requester()
-    print(threading.active_count())
-    ar.add_request_data("BTC", 499026, 6)
-    ar.add_request_data("ETH", 4724187, 4*60)
-    ar.get_multiple_blocks()
-    print(threading.active_count())
-    print ("finish")
-
-
-if __name__ == "__main__": main()

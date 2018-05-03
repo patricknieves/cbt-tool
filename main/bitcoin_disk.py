@@ -140,19 +140,17 @@ def locked_blocks_iterator(start_info=(0, 0), cached_headers=50, batch_size=50, 
 
 
 def main():
+    """ Method to retrieve Bitcoin blocks from downloaded files """
     b = BlockChain()
     print(str(b.last_block_hash()))
-    #path_BTC = os.path.join = ("E:", "Masterarbeit", "btc_node")
     bf = Blockfiles(base_dir="E:\\Masterarbeit\\btc_node")
     print(bf._path_for_file_index())
     block = Block.parse_as_header(bf)
-    #bitcoin_disk.blockheader_for_offset_info((0, 0), base_dir="E:\\Masterarbeit\\btc_node")
 
     i=-1
     for block in locked_blocks_iterator(start_info=(0, 0), base_dir="E:\\Masterarbeit\\btc_node"):
         i = i + 1
         #if i == 100000:
-        #    print ("test")
         print("Block")
         print(block.version)
         print(block.previous_block_hash)

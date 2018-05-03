@@ -11,17 +11,16 @@ import Tor
 
 
 def get_last_block_number(currency):
+    """ Gets the most recent block number for the given currency """
     Tor.change_ip()
     for attempt in range(10):
         try:
             if currency == "BTC":
                 last_block_number = requests.get("https://blockchain.info/de/latestblock").json()["height"]
             elif currency == "ETH":
-                #last_block_number = requests.get("https://etherchain.org/api/blocks/count").json()["data"][0]["count"]
                 last_block_number = int(requests.get("https://api.infura.io/v1/jsonrpc/mainnet/eth_blockNumber?token=Wh9YuEIhi7tqseXn8550").json()["result"], 16)
             elif currency == "LTC":
                 last_block_number = requests.get("https://chain.so/api/v2/get_info/LTC").json()["data"]["blocks"]
-                #last_block_number = requests.get("https://api.blockcypher.com/v1/ltc/main").json()["height"]
             else:
                 print ("Couldn't get last number of block. Not such a currency: " + currency)
                 return
@@ -37,6 +36,7 @@ def get_last_block_number(currency):
 
 
 def get_block_by_number(currency, number):
+    """ Gets a block with the given block number for a given currency """
     Tor.change_ip()
     for attempt in range(5):
         try:
@@ -44,7 +44,6 @@ def get_block_by_number(currency, number):
                 block = requests.get("https://blockchain.info/de/block-height/" + (str(number)) + "?format=json").json()["blocks"][0]
                 block["tx"].sort(key=lambda x: datetime.datetime.utcfromtimestamp(x["time"]), reverse=True)
             elif currency == "ETH":
-                #block = requests.get("https://etherchain.org/api/block/" + (str(number)) + "/tx").json()["data"]
                 block = requests.get("https://api.infura.io/v1/jsonrpc/mainnet/eth_getBlockByNumber?params=%5B%22" + hex(number) + "%22%2C%20true%5D&token=Wh9YuEIhi7tqseXn8550").json()["result"]
             elif currency == "LTC":
                 block = requests.get("https://chain.so/api/v2/block/LTC/" + (str(number))).json()["data"]
@@ -63,6 +62,7 @@ def get_block_by_number(currency, number):
 
 
 def standardize(currency, json):
+    """ Converts the returned block data from external APIs into a standardized dictionary """
     standardized_dict = []
     if currency == "BTC":
         for transaction in json["tx"]:
@@ -117,17 +117,6 @@ def standardize(currency, json):
                 dict_item["outputs"] = [dict_item_output]
                 standardized_dict.append(dict_item)
 
-        # for transaction in json:
-        #     if transaction["amount"] != 0:
-        #         dict_item = {}
-        #         dict_item["amount"] = transaction["amount"]/1E+18
-        #         dict_item["time"] = datetime.datetime.strptime(transaction["time"].replace("T"," ")[:-5], "%Y-%m-%d %H:%M:%S")
-        #         dict_item["blocktime"] = dict_item["time"]
-        #         dict_item["fee"] = transaction["gasUsed"]*(transaction["price"]/ 1E+18)
-        #         dict_item["hash"] = transaction["hash"]
-        #         dict_item["address"] = transaction["recipient"]
-        #         dict_item["block_nr"] = transaction["block_id"]
-        #         standardized_dict.append(dict_item)
     elif currency == "LTC":
         for transaction in json["txs"]:
             dict_item = {"symbol": currency,
@@ -157,7 +146,9 @@ def standardize(currency, json):
 
 
 def get_transactions_for_address(currency, address):
+    """ Returns all transactions involving a given address for a given currency """
     Tor.change_ip()
+    transactions = None
     for attempt in range(5):
         try:
             if currency == "ETH":
@@ -177,25 +168,3 @@ def get_transactions_for_address(currency, address):
     else:
         traceback.print_exc()
         print("Couldn't get transactions from Etherscan")
-
-
-def get_transactions_for_eth_address(etherscan_key, shapeshift_main_address_ETH, startblock, endblock):
-    Tor.change_ip()
-    for attempt in range(5):
-        try:
-            transactions = requests.get("http://api.etherscan.io/api?module=account&"
-                                        "action=txlist&" +
-                                        "address=" + shapeshift_main_address_ETH +
-                                        "&startblock=" + str(startblock) +
-                                        "&endblock=" + str(endblock) +
-                                        "&sort=desc" +
-                                        "&apikey=" + etherscan_key).json()["result"]
-        except:
-            print ("Wait 5 sec")
-            time.sleep(5)
-            Tor.change_ip()
-        else:
-            return transactions
-    else:
-        traceback.print_exc()
-        sys.exit("Couldn't get transactions from Etherscan")

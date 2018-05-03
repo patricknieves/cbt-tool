@@ -9,6 +9,7 @@ import Settings
 import Currency_apis
 
 class Address_tracker_eth(object):
+    """ Class responsible for recognizing Shapeshift addresses in Ethereum """
     def __init__(self):
         self.shapeshift_main_address_ETH = "0x70faa28a6b8d6829a4b1e649d26ec9a2a39ba413"
         self.etherscan_key = "2BBQWBUF94KBKWQMASY3PBCGF7737FTK5N"
@@ -27,6 +28,7 @@ class Address_tracker_eth(object):
                                           ]
 
     def filter_block(self, new_transactions):
+        """ Recognizes and classifies Shapeshift addresses in a given block """
         block = []
         if new_transactions:
             # Load Shapeshift transactions from Etherscan
@@ -49,6 +51,7 @@ class Address_tracker_eth(object):
         return block
 
     def prepare_addresses(self, current_block_nr):
+        """ Loads future transaction of Shapeshifts main address needed for the address recognition """
         # Load first block and get time
         block = []
         counter = 0
@@ -56,7 +59,7 @@ class Address_tracker_eth(object):
             block = Currency_apis.get_block_by_number("ETH", current_block_nr - counter)
             counter = counter + 1
         current_exchange_time = block[0]["blocktime"]
-        # Load until last shapeshift transactions 1,5 days older than the starting time
+        # Load until last shapeshift transactions 1.5 days older than the starting time
         if not self.shapeshift_transactions:
             current_block_nr = current_block_nr + 1
             while not self.shapeshift_transactions or current_exchange_time > \
@@ -77,7 +80,8 @@ class Address_tracker_eth(object):
         self.delete_old_deposit_addresses(current_exchange_time)
 
     def delete_old_deposit_addresses(self, current_exchange_time):
-        # Delete transactions which are newer than 2 days
+        """ Deletes all addresses not needed anymore for the address recognition """
+        # Delete transactions which are newer than 1.5 days
         for address_transaction in list(self.shapeshift_transactions):
             time_diff = (address_transaction["delete_time"] - current_exchange_time).total_seconds()
             if time_diff > 1.5*24*60*60:
@@ -88,6 +92,7 @@ class Address_tracker_eth(object):
                 break
 
     def get_transactions_for_address(self, start_block_nr, end_block_nr):
+        """ Gets transactions involving Shapeshifts main address using the Etherscan API """
         Tor.change_ip()
         for attempt in range(5):
             try:

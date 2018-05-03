@@ -4,6 +4,7 @@ from crycompare import *
 
 
 class Currency_data(object):
+    """ Class responsible for retrieving historical exchange rates from CryptoCompare """
 
     def __init__(self, currency_from, currency_to):
         self.h = History()
@@ -12,6 +13,7 @@ class Currency_data(object):
         self.currency_to = currency_to
 
     def get_value(self, transaction_time):
+        """ Returns the value of a cryptocurrency for a given time in Dollar """
         transaction_time = calendar.timegm(transaction_time.timetuple())
         if not self.currency_data:
             Tor.change_ip()

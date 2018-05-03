@@ -37,6 +37,7 @@ columns ="id, " \
 
 
 class Exchange_block_nr_from(Resource):
+    """ Search exchanges by deposit currency and block number """
     def get(self):
         start = request.args.get('start')
         end = request.args.get('end')
@@ -45,6 +46,7 @@ class Exchange_block_nr_from(Resource):
         return jsonify(result)
 
 class Exchange_block_nr_to(Resource):
+    """ Search exchanges by withdrawal currency and block number """
     def get(self):
         start = request.args.get('start')
         end = request.args.get('end')
@@ -53,6 +55,7 @@ class Exchange_block_nr_to(Resource):
         return jsonify(result)
 
 class Exchange_time_range(Resource):
+    """ Search exchanges in a given time range """
     def get(self):
         start = request.args.get('start')
         end = request.args.get('end')
@@ -63,26 +66,31 @@ class Exchange_time_range(Resource):
         return jsonify(result)
 
 class Exchange_address_from(Resource):
+    """ Search exchanges by deposit address """
     def get(self, address_from):
         result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE address_from = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE address_from = %s", (address_from, address_from))
         return jsonify(result)
 
 class Exchange_address_to(Resource):
+    """ Search exchanges by withdrawal address """
     def get(self, address_to):
         result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE address_to = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE address_to = %s", (address_to, address_to))
         return jsonify(result)
 
 class Exchange_hash_from(Resource):
+    """ Search exchanges by transaction hash of the deposit """
     def get(self, hash_from):
         result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE hash_from = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE hash_from = %s", (hash_from, hash_from))
         return jsonify(result)
 
 class Exchange_hash_to(Resource):
+    """ Search exchanges by transaction hash of the withdrawal """
     def get(self, hash_to):
         result = query_db("SELECT " + columns + " FROM cross_block.exchanges WHERE hash_to = %s UNION SELECT " + columns + " FROM cross_block.scraper_second WHERE hash_to = %s", (hash_to, hash_to))
         return jsonify(result)
 
 class Exchange_input_from(Resource):
+    """ Search exchanges by the address which sent funds to a deposit address """
     def get(self, input_from):
 
         if input_from[0] + input_from[1] == "0x":
@@ -105,6 +113,7 @@ class Exchange_input_from(Resource):
             return jsonify(result)
 
 class Exchange_input_to(Resource):
+    """ Search exchanges by the address which sent funds to a withdrawal address """
     def get(self, input_to):
 
         if input_to[0] + input_to[1] == "0x":
@@ -132,6 +141,7 @@ class Exchange_input_to(Resource):
 
 
 def query_db(query, parameters):
+    """ Method which queries the database with the given parameters and returns a list of standardized exchanges (Dictionary) """
     db = MySQLdb.connect(host="localhost", user="root", passwd="Sebis2017")
     cur = db.cursor()
     cur.execute(query, parameters)
