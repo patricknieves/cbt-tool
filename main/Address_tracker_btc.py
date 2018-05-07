@@ -8,11 +8,7 @@ from async_requests import Async_requester
 class Address_tracker_btc(object):
     """ Class responsible for recognizing Shapeshift addresses for Bitcoin """
     def __init__(self):
-        #self.shapeshift_main_addresses = set(Database_manager.get_all_shapeshift_addresses_btc())
         self.shapeshift_main_addresses = Settings.get_main_addresses()
-
-        #self. shapeshift_middle_addresses = set([])
-        #self. shapeshift_single_addresses = set([])
 
         self.shapeshift_middle_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("middle")
         self.shapeshift_single_addresses = Database_manager.get_all_shapeshift_middle_addresses_btc("single")
