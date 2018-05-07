@@ -12,8 +12,6 @@ def main():
     # Create MySQL Tables
     Database_manager.create_table_exchanges()
     Database_manager.create_table_shapeshift_addresses_btc()
-    #TODO delete later
-    Database_manager.create_test_table_relations()
 
     # Delete all data from DB
     Database_manager.delete_all_data()

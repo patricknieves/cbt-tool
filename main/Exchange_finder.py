@@ -28,7 +28,6 @@ class Exchange_finder(object):
         self.currency_data = {}
         self.async_requester = Async_requester()
         self.hours_single_loop = 1
-        #self.hours_whole_analysis = 273*24 # bis zum 1.Juni 2017
         self.hours_whole_analysis = 150*24
         self.current_exchanges_found_one_block = []
         self.current_exchanges_found = []
@@ -56,7 +55,7 @@ class Exchange_finder(object):
         print("Duration for Preparation :" + str(time.time() - start_preparation))
         counter = 0
 
-        while start_time - current_search_time < range_to_analyze and self.current_block_numbers["BTC"] > 487764:
+        while start_time - current_search_time < range_to_analyze and self.current_block_numbers["BTC"] > 497000:
             start_loop = time.time()
 
             # Check if Array long enough. If not load more blocks until time difference of X min is reached
@@ -86,11 +85,6 @@ class Exchange_finder(object):
             # For Test
             counter = counter + 1
             print("Duration for Loop " + str(counter) + ": " + str(time.time() - start_loop))
-
-        #Delete this when project finished?
-        Address_manager.save_addresses_end()
-        print("Last Block ETH:" + self.current_block_numbers["ETH"])
-        print("Last Block BTC:" + self.current_block_numbers["BTC"])
 
 
     def load_first_blocks(self):
@@ -151,7 +145,6 @@ class Exchange_finder(object):
                 new_blocks = self.async_requester.get_multiple_blocks()
                 # Pass blocks to filtering
                 self.async_filter_and_save(new_blocks)
-                #print("Block Loading Duration: " + str(time.time() - start))
         self.sort_blocks_and_transactions()
 
     def async_compare(self, block_from):
