@@ -66,7 +66,6 @@ class Address_tracker_btc(object):
             if tx_output["address"] in self.shapeshift_main_addresses \
                     or tx_output["address"] in self.shapeshift_middle_addresses \
                     or tx_output["address"] in self.shapeshift_single_addresses:
-                print("Found match in Transaction: " + str(exchange_transaction["hash"]))
 
                 #Check if input from trading platform. If yes, ignore tx
                 ignore = False
@@ -83,7 +82,7 @@ class Address_tracker_btc(object):
                                     and not(tx_input["address"] in self.shapeshift_middle_addresses):
                                 # Check if input address was already used and move from single to middle class
                                 if tx_input["address"] in self.shapeshift_single_addresses:
-                                    print("Adding new MIDDLE Addresses: " + str(tx_input["address"]))
+                                    print("Adding new MIDDLE Address: " + str(tx_input["address"]))
                                     self.shapeshift_single_addresses.remove(tx_input["address"])
                                     self.shapeshift_middle_addresses.add(tx_input["address"])
                                 else:
@@ -92,7 +91,6 @@ class Address_tracker_btc(object):
                                     Database_manager.insert_relation(tx_input["address"], tx_output["address"], exchange_transaction["hash"])
                 for tx_output_delete in exchange_transaction["outputs"]:
                     if tx_output_delete["address"] in self.shapeshift_single_addresses:
-                        print("Deleting SINGLE Address: " + str(tx_output["address"]))
                         self.shapeshift_single_addresses.remove(tx_output_delete["address"])
                 return
 

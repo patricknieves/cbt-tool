@@ -29,6 +29,7 @@ class Exchange_finder(object):
         self.async_requester = Async_requester()
         self.hours_single_loop = 1
         self.hours_whole_analysis = 150*24
+        self.last_btc_block_to_analyze = 497000
         self.current_exchanges_found_one_block = []
         self.current_exchanges_found = []
         for currency in self.currencies:
@@ -55,7 +56,7 @@ class Exchange_finder(object):
         print("Duration for Preparation :" + str(time.time() - start_preparation))
         counter = 0
 
-        while start_time - current_search_time < range_to_analyze and self.current_block_numbers["BTC"] > 497000:
+        while start_time - current_search_time < range_to_analyze and self.current_block_numbers["BTC"] > self.last_btc_block_to_analyze:
             start_loop = time.time()
 
             # Check if Array long enough. If not load more blocks until time difference of X min is reached
@@ -179,7 +180,6 @@ class Exchange_finder(object):
                     # Get Rate from CMC for certain block time. (Block creation time (input currency) is used for both)
                     dollarvalue_to = self.currency_data[transaction_to["symbol"]].get_value(transaction_from["blocktime"])
                     if not(dollarvalue_from) or not(dollarvalue_to):
-                        print("Dollar value counld not be retrieved for tx : " + str(transaction_to["hash"]))
                         continue
                     rate_cmc = dollarvalue_from/dollarvalue_to
                     number_of_outputs = len(transaction_to["outputs"])

@@ -12,7 +12,7 @@ class Address_manager(object):
     def prepare(self, current_block_numbers):
         """ Executes the preparation process for the Address recognition of all currencies  """
         self.address_tracker_eth.prepare_addresses(current_block_numbers["ETH"])
-        #self.address_tracker_btc.prepare_addresses(current_block_numbers["BTC"])
+        self.address_tracker_btc.prepare_addresses(current_block_numbers["BTC"])
 
     def filter_block_and_save_addresses(self, block):
         """ Executes the recognition process for one block """
